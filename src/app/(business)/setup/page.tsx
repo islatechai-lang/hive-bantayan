@@ -16,6 +16,7 @@ import styles from "./setup.module.css";
 export default function CreateBusinessPage() {
   const router = useRouter();
   const { user, setUser } = useAuthStore();
+  const { setMode } = useUIStore();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
@@ -110,10 +111,17 @@ export default function CreateBusinessPage() {
           <CheckCircle2 size={64} color="var(--status-completed)" style={{ margin: "0 auto 20px auto" }} />
           <h1 className={styles.title}>Registration Sent!</h1>
           <p className={styles.subtitle} style={{ marginBottom: 30 }}>
-            Your business registration for <strong>{name}</strong> has been submitted. Platform admins will review and verify your shop shortly.
+            Your business registration for <strong>{name}</strong> has been submitted. You can access your dashboard to set up products, but your store won't be visible to buyers until approved by an admin.
           </p>
-          <Button variant="primary" fullWidth onClick={() => router.push("/home")}>
-            Go to Buyer Screen
+          <Button 
+            variant="primary" 
+            fullWidth 
+            onClick={() => {
+              setMode("business");
+              router.push("/dashboard");
+            }}
+          >
+            Go to Store Dashboard
           </Button>
         </div>
       </div>

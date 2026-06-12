@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { collection, doc, query, onSnapshot, updateDoc, writeBatch } from "firebase/firestore";
-import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle, Compass } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
