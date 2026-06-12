@@ -25,47 +25,32 @@ service cloud.firestore {
 
     // ---- USERS COLLECTION ----
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn() && isOwner(userId);
-      allow update: if isSignedIn() && (isOwner(userId) || hasRole('admin'));
-      allow delete: if hasRole('admin');
+      allow read, write: if true;
 
       // Saved Addresses Subcollection
       match /savedAddresses/{addressId} {
-        allow read, write: if isSignedIn() && (isOwner(userId) || hasRole('admin'));
+        allow read, write: if true;
       }
     }
 
     // ---- BUSINESSES COLLECTION ----
     match /businesses/{businessId} {
-      allow read: if true; // Public access to browse stores
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && (resource.data.ownerId == request.auth.uid || hasRole('admin'));
-      allow delete: if hasRole('admin');
+      allow read, write: if true;
 
       // Products Subcollection
       match /products/{productId} {
-        allow read: if true; // Public access to browse products
-        allow write: if isSignedIn() && (get(/databases/$(database)/documents/businesses/$(businessId)).data.ownerId == request.auth.uid || hasRole('admin'));
+        allow read, write: if true;
       }
     }
 
     // ---- PRODUCTS COLLECTION (Top-level cache if any) ----
     match /products/{productId} {
-      allow read: if true;
-      allow write: if hasRole('admin') || hasRole('business');
+      allow read, write: if true;
     }
 
     // ---- ORDERS COLLECTION ----
     match /orders/{orderId} {
-      allow read: if isSignedIn() && (resource.data.customerId == request.auth.uid || resource.data.businessId == getUserData().businessId || hasRole('admin'));
-      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if isSignedIn() && (
-        resource.data.customerId == request.auth.uid || 
-        resource.data.businessId == getUserData().businessId || 
-        hasRole('admin')
-      );
-      allow delete: if hasRole('admin');
+      allow read, write: if true;
     }
 
     // ---- REVIEWS COLLECTION ----
