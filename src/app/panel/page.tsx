@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, query, onSnapshot, updateDoc, writeBatch } from "firebase/firestore";
-import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle, Compass } from "lucide-react";
+import { collection, doc, query, onSnapshot, updateDoc, writeBatch, getDoc, setDoc } from "firebase/firestore";
+import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle, Compass, Lock, Settings } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -15,7 +15,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
 import styles from "./panel.module.css";
 
-type TabOption = "pending" | "stores" | "users" | "orders";
+type TabOption = "pending" | "stores" | "users" | "orders" | "settings";
 
 export default function AdminPanelPage() {
   const router = useRouter();
@@ -23,15 +23,46 @@ export default function AdminPanelPage() {
   const [activeTab, setActiveTab] = useState<TabOption>("pending");
   const [loading, setLoading] = useState(true);
 
+  // Lock screen state
+  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [inputPassword, setInputPassword] = useState("");
+  const [savedPassword, setSavedPassword] = useState("1234");
+  const [newPassword, setNewPassword] = useState("");
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
   // Firestore Collections Data
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
 
+  // Load saved password and check unlock status on mount
+  useEffect(() => {
+    async function loadPassword() {
+      try {
+        const configRef = doc(db, "systemConfig", "admin");
+        const snap = await getDoc(configRef);
+        if (snap.exists()) {
+          setSavedPassword(snap.data().password || "1234");
+        } else {
+          // Initialize default
+          await setDoc(configRef, { password: "1234" });
+          setSavedPassword("1234");
+        }
+      } catch (err) {
+        console.error("Failed to load admin password:", err);
+      }
+    }
+    
+    if (typeof window !== "undefined") {
+      const unlocked = sessionStorage.getItem("admin_unlocked") === "true";
+      setIsUnlocked(unlocked);
+    }
+    loadPassword();
+  }, []);
+
   // Setup real-time listeners for all data
   useEffect(() => {
-    // Only fetch if user is logged in
-    if (!user) return;
+    if (!isUnlocked) return;
 
     setLoading(true);
 
@@ -53,7 +84,7 @@ export default function AdminPanelPage() {
       unsubUsers();
       unsubOrders();
     };
-  }, [user]);
+  }, [isUnlocked]);
 
   // Dev bypass helper to make current account Admin
   const handleBecomeAdmin = async () => {
@@ -140,24 +171,83 @@ export default function AdminPanelPage() {
     }
   };
 
-  // 1. Access Control: If not signed in or not an Admin, show Dev Bypass screen
-  if (!user || user.role !== "admin") {
+  // Action: Unlock the panel
+  const handleUnlock = () => {
+    if (inputPassword === savedPassword) {
+      setIsUnlocked(true);
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("admin_unlocked", "true");
+      }
+      toast.success("Panel unlocked successfully!");
+    } else {
+      toast.error("Incorrect password!");
+    }
+  };
+
+  // Action: Change admin password
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPassword.trim()) {
+      toast.error("Password cannot be empty");
+      return;
+    }
+    setIsChangingPassword(true);
+    try {
+      const configRef = doc(db, "systemConfig", "admin");
+      await setDoc(configRef, { password: newPassword.trim() }, { merge: true });
+      setSavedPassword(newPassword.trim());
+      setNewPassword("");
+      toast.success("Admin password changed successfully!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to update password");
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
+  // Access Control: If not unlocked, show Password Screen
+  if (!isUnlocked) {
     return (
       <div className="app-container">
-        <div style={{ padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", textAlign: "center", gap: 16 }}>
-          <AlertTriangle size={64} color="var(--accent)" className="pulse" />
-          <h1 className={styles.title}>Admin Access Restricted</h1>
-          <p className={styles.subtitle} style={{ maxWidth: 360, marginBottom: 12 }}>
-            Your account is currently set as a <strong>{user?.role || "guest"}</strong>. You need an <strong>admin</strong> account to access this panel.
-          </p>
-          
-          <Button variant="primary" fullWidth onClick={handleBecomeAdmin}>
-            Become Admin (Dev Mode Bypass)
-          </Button>
+        <div style={{ padding: "40px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "100vh", textAlign: "center", gap: 20 }}>
+          <div style={{ width: 64, height: 64, borderRadius: "50%", backgroundColor: "var(--primary-light)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>
+            <Lock size={32} />
+          </div>
+          <div>
+            <h1 className={styles.title}>Admin Panel Locked</h1>
+            <p className={styles.subtitle} style={{ maxWidth: 300, margin: "8px auto 0 auto" }}>
+              Please enter the administrator password to unlock this management interface.
+            </p>
+          </div>
 
-          <Button variant="text" fullWidth onClick={() => router.push("/home")}>
-            Back to Home
-          </Button>
+          <div style={{ width: "100%", maxWidth: 300, display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+            <input
+              type="password"
+              placeholder="Enter password (default: 1234)"
+              value={inputPassword}
+              onChange={(e) => setInputPassword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleUnlock()}
+              style={{
+                width: "100%",
+                padding: "12px 16px",
+                borderRadius: "var(--radius-sm)",
+                border: "1px solid var(--border-color)",
+                backgroundColor: "var(--bg-surface)",
+                color: "var(--text-main)",
+                textAlign: "center",
+                fontSize: "16px",
+                fontWeight: 600,
+                letterSpacing: "0.1em"
+              }}
+            />
+            <Button variant="primary" fullWidth onClick={handleUnlock}>
+              Unlock Panel
+            </Button>
+            <Button variant="text" fullWidth onClick={() => router.push("/home")}>
+              Back to Home
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -205,6 +295,12 @@ export default function AdminPanelPage() {
             onClick={() => setActiveTab("orders")}
           >
             All Orders ({orders.length})
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === "settings" ? styles.activeTab : ""}`}
+            onClick={() => setActiveTab("settings")}
+          >
+            Settings
           </button>
         </div>
 
@@ -381,7 +477,46 @@ export default function AdminPanelPage() {
                       </Card>
                     ))}
                   </div>
-                )}
+            {/* TAB: SETTINGS */}
+            {activeTab === "settings" && (
+              <section className={styles.section}>
+                <Card className={styles.itemCard}>
+                  <div className={styles.cardHeader}>
+                    <h3 className={styles.cardTitle}>Change Admin Password</h3>
+                  </div>
+                  <form onSubmit={handleChangePassword} style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 12 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 13, fontWeight: 600 }}>
+                        Current Password: <span style={{ fontFamily: "monospace", color: "var(--primary)" }}>{savedPassword}</span>
+                      </label>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                      <label style={{ fontSize: 13, fontWeight: 600 }}>New Password</label>
+                      <input
+                        type="text"
+                        placeholder="Enter new admin password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={{
+                          padding: "10px 14px",
+                          borderRadius: "var(--radius-sm)",
+                          border: "1px solid var(--border-color)",
+                          backgroundColor: "var(--bg-input)",
+                          color: "var(--text-main)",
+                          fontSize: "14px"
+                        }}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      loading={isChangingPassword}
+                      style={{ marginTop: 8 }}
+                    >
+                      Save Password
+                    </Button>
+                  </form>
+                </Card>
               </section>
             )}
           </div>

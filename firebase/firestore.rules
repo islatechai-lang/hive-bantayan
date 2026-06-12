@@ -121,5 +121,9 @@ service cloud.firestore {
       allow read: if true;
       allow write: if hasRole('admin');
     }
+    // ---- SYSTEM CONFIG COLLECTION ----
+    match /systemConfig/{docId} {
+      allow read, write: if true;
+    }
   }
 }
