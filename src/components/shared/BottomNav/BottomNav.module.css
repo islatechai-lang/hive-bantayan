@@ -1,0 +1,86 @@
+.navBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 12px calc(var(--safe-bottom) + 8px) 12px;
+  z-index: 90;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
+}
+
+.dark .navBar {
+  background: rgba(18, 24, 32, 0.85);
+  border-top-color: var(--border-color);
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Make Nav Bar follow desktop layout bounds when on big screens */
+@media (min-width: 768px) {
+  .navBar {
+    max-width: 480px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 1px solid var(--border-color);
+    border-right: 1px solid var(--border-color);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+  }
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-light);
+  font-size: 11px;
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  position: relative;
+  min-width: 56px;
+}
+
+.navItem:hover {
+  color: var(--text-main);
+}
+
+.activeItem {
+  color: var(--primary) !important;
+}
+
+.activeItem .icon {
+  transform: translateY(-2px);
+  color: var(--primary);
+}
+
+.icon {
+  width: 22px;
+  height: 22px;
+  transition: transform var(--transition-normal);
+}
+
+.badge {
+  position: absolute;
+  top: -4px;
+  right: 10px;
+  background-color: var(--status-cancelled);
+  color: #FFFFFF;
+  font-size: 10px;
+  font-weight: 700;
+  height: 16px;
+  min-width: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--bg-surface);
+  box-shadow: var(--shadow-sm);
+}

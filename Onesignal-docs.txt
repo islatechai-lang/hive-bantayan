@@ -1,0 +1,103 @@
+OneSignal
+Engage your users with OneSignal Push Notifications and In-App Messages
+
+OneSignal is a powerful push notification platform that scales from early-stage startups to enterprises. Median.co's integration connects it directly to your iOS and Android apps via the Median JavaScript Bridge https://median.co/docs/javascript-bridge . This guide walks you through everything you need to get set up: what to prepare, how to configure each platform, and where to go next.
+
+Median connects your web app to OneSignal's native iOS and Android SDKs through the JavaScript Bridge. This means you can trigger and manage push notifications, in-app messages, user targeting, and consent flows entirely from your website's JavaScript. The integration runs on OneSignal SDK v5+ by default, which uses a user-centric data model. If your app was built before Median.co adopted v5, see Legacy Mode https://median.co/docs/onesignal-legacy-mode before proceeding.
+
+
+
+Why use OneSignal with Median.co
+Web-first control: Drive push, in-app messaging, user identity, segments, and consent from your site's JavaScript through the JavaScript Bridge https://median.co/docs/javascript-bridge. 
+Consistent cross-platform setup: One Median.co plugin surface for iOS and Android after you complete each platform's credential steps (APNs and FCM).
+Full OneSignal toolkit: Use dashboard campaigns, programmatic delivery https://median.co/docs/programmatic-notifications , user targeting https://median.co/docs/onesignal-user-management , and in-app messages https://median.co/docs/in-app-messages from the same integration.
+Modern SDK defaults: Runs on OneSignal SDK v5+ with a user-centric model; older apps should confirm behavior against Legacy Mode https://median.co/docs/onesignal-legacy-mode.
+
+Prerequisites
+Make sure you have the following before starting. Missing any one of these will block your setup.
+
+All apps
+
+ A Median.co app with JavaScript Bridge enabled
+ A OneSignal account — free to create
+ Your OneSignal App ID and REST API Key (found in your OneSignal dashboard under Settings > Keys & IDs)
+iOS apps
+
+ An Apple Push Notification service (APNs) credential — either a .p8 token key (recommended) or a .p12 certificate, generated from your Apple Developer account
+ Push Notifications and Background Modes (Remote notifications) capabilities enabled in Xcode for your app target
+ App Groups capability enabled (required for badge counts, rich notification images, and confirmed delivery analytics)
+Android apps
+
+ A Google Firebase project with Cloud Messaging (FCM) enabled
+ A Firebase Service Account JSON credentials file — downloaded from your Firebase project settings
+📘
+Already have a OneSignal account connected to Median.co?
+Head straight to Managing Permissions & Consent to control how and when users are prompted.
+
+
+When to use this plugin
+Median's OneSignal integration is especially useful when you need to:
+
+Use case	Example
+Transactional and lifecycle messages	Send order updates, booking reminders, or account alerts as push notifications.
+Re-engagement	Re-engage users with new content, limited-time offers, or abandoned-journey follow-ups.
+Segmented or identified audiences	Target logged-in users, tags, or segments defined in OneSignal from the dashboard or API.
+In-app messaging	Show prompts, or announcements inside the app, including flows that don't require push permission first.
+Consent and timing	Control when the OS permission dialog appears or wait until privacy consent before initializing OneSignal. See Managing Permissions & Consent.
+Server-triggered push	Send notifications from your backend using OneSignal's REST API
+
+What you'll do
+Use this section as a fast navigation map into the full setup path:
+
+Gather credentials: Complete the items in Prerequisites, including your OneSignal App ID, REST API Key, and platform credentials.
+Configure iOS (if applicable): Follow the iOS setup to generate your APNs certificate and enable Push Notifications in Xcode.
+Configure Android (if applicable): Follow the Android setup to create a Firebase project and upload FCM credentials to OneSignal.
+Enable the plugin in Median: Go to Plugin setup and connect OneSignal to your app in Median App Studio.
+Verify delivery: Complete the Testing checklist and review Troubleshooting if a test notification doesn't arrive.
+
+Android and iOS configuration
+AndroidiOS
+Android setup
+Step 1: Create a Firebase project
+If you don't already have one:
+
+Go to the Firebase Console.
+Click Add project and follow the prompts.
+Register your Android app using your app's package name.
+Step 2: Enable Cloud Messaging
+In your Firebase project:
+
+Go to Project Settings > Cloud Messaging.
+Confirm that Firebase Cloud Messaging (FCM) API is enabled.
+Step 3: Download your Service Account credentials
+Go to Project Settings > Service accounts.
+Click Generate new private key.
+Download the JSON file — this is your FCM Service Account credentials file.
+Step 4: Upload credentials to OneSignal
+In your OneSignal dashboard:
+
+Go to Settings > Push & In-App > Google Android (FCM).
+Upload the Service Account JSON file you downloaded in Step 3.
+Plugin setup
+Enable the plugin
+With your platform credentials in place, connect OneSignal to your app in Median App Studio:
+
+Open your app in App Studio.
+Navigate to Plugins > Push Notifications > OneSignal.
+Enter your OneSignal App ID.
+Save and rebuild your app.
+Your app will now initialize OneSignal on launch and — by default — prompt users for push notification permission on first open.
+
+Want to control when the permission prompt appears? See Managing Permissions & Consent to delay the prompt or require privacy consent before OneSignal initializes.
+
+Find your OneSignal App ID and REST API Key
+You'll need these for both the App Studio setup and any server-side or programmatic notifications.
+
+Log in to your OneSignal dashboard.
+Select your app.
+Go to Settings > Keys & IDs.
+Key	Where it's used
+App ID	App Studio setup, REST API calls
+REST API Key	Server-side programmatic notifications
+Keep your REST API Key private, it authorizes notification delivery on your behalf.
+

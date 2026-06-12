@@ -1,0 +1,163 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 24px 20px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.orderCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  transition: all var(--transition-fast);
+}
+
+.orderCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 12px;
+  font-size: 13.5px;
+}
+
+.orderNumber {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.orderDate {
+  color: var(--text-light);
+}
+
+.itemSummary {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.orderFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.totalPrice {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+/* Timeline Layout for Tracking */
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: relative;
+  padding-left: 24px;
+  margin: 12px 0;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  background-color: var(--border-color);
+  z-index: 0;
+}
+
+.timelineStep {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.timelineDot {
+  position: absolute;
+  left: -24px;
+  top: 4px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: var(--bg-main);
+  border: 3px solid var(--border-color);
+  transition: all var(--transition-normal);
+}
+
+.activeStep .timelineDot {
+  border-color: var(--primary);
+  background-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-light);
+}
+
+.completedStep .timelineDot {
+  border-color: var(--status-completed);
+  background-color: var(--status-completed);
+}
+
+.stepTitle {
+  font-family: var(--font-heading);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.activeStep .stepTitle {
+  color: var(--primary);
+}
+
+.completedStep .stepTitle {
+  color: var(--text-main);
+}
+
+.stepDesc {
+  font-size: 12.5px;
+  color: var(--text-light);
+}
+
+.activeStep .stepDesc {
+  color: var(--text-muted);
+}
+
+.stepTime {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+/* Details summary */
+.detailsCard {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detailRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13.5px;
+  color: var(--text-muted);
+}

@@ -1,0 +1,116 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 20px;
+}
+
+.greetings {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.welcome {
+  font-size: 14px;
+  color: var(--text-light);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.userName {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.searchRow {
+  position: sticky;
+  top: 68px; /* Offset sticky header height */
+  z-index: 10;
+  background-color: var(--bg-main);
+  padding: 4px 0;
+  margin: -4px 0;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sectionTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sparkleIcon {
+  color: var(--accent);
+}
+
+.horizontalScroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 4px 20px;
+  margin: 0 -20px;
+  scrollbar-width: none;
+}
+
+.horizontalScroll::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontalCardWrapper {
+  flex: 0 0 280px;
+}
+
+.verticalGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.emptyCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 12px;
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  color: var(--text-light);
+  font-size: 14px;
+}
+
+.emptyIcon {
+  color: var(--text-light);
+  opacity: 0.6;
+}
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--status-cancelled-bg);
+  color: var(--status-cancelled);
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  border: 1px solid rgba(220, 38, 38, 0.1);
+}

@@ -1,0 +1,241 @@
+/* ============================================================
+   Bantayan Hub — Global Styles & Design System (Vanilla CSS)
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Fonts */
+  --font-heading: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Colors - Light Theme (Tropical Island Vibe) */
+  --primary: #FF6B35;          /* Warm Coral Sunset */
+  --primary-hover: #E85A24;
+  --primary-light: #FFF0EB;
+  
+  --secondary: #004E64;        /* Deep Ocean Teal */
+  --secondary-hover: #003B4C;
+  --secondary-light: #E0F2F1;
+  
+  --accent: #FFB800;           /* Golden Island Sun */
+  --accent-light: #FFF8E1;
+
+  --bg-main: #FFF8F0;          /* Warm sandy off-white */
+  --bg-surface: #FFFFFF;       /* Crisp white for cards/menus */
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFBF7;
+  --bg-hover: #FDF4EB;
+
+  --text-main: #1C1E21;        /* Deep dark gray for high readability */
+  --text-muted: #5F666E;       /* Cool gray for secondary text */
+  --text-light: #8A929C;       /* Light gray for metadata */
+  --text-on-primary: #FFFFFF;
+  
+  --border-color: #EEDFD0;     /* Soft border */
+  --border-focus: #FF6B35;
+  
+  /* Status Colors */
+  --status-pending: #FFB800;
+  --status-pending-bg: #FFF8E1;
+  --status-accepted: #0D9488;
+  --status-accepted-bg: #E6F4F1;
+  --status-preparing: #7C3AED;
+  --status-preparing-bg: #F3E8FF;
+  --status-ready: #2563EB;
+  --status-ready-bg: #EFF6FF;
+  --status-delivery: #EA580C;
+  --status-delivery-bg: #FFF7ED;
+  --status-completed: #16A34A;
+  --status-completed-bg: #F0FDF4;
+  --status-cancelled: #DC2626;
+  --status-cancelled-bg: #FEF2F2;
+
+  /* Shadows (Warm & deep) */
+  --shadow-sm: 0 2px 4px rgba(255, 107, 53, 0.04), 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 8px 16px rgba(255, 107, 53, 0.05), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 16px 24px rgba(255, 107, 53, 0.08), 0 4px 8px rgba(0, 0, 0, 0.03);
+  --shadow-focus: 0 0 0 4px rgba(255, 107, 53, 0.15);
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 9999px;
+
+  /* Spacing */
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  
+  /* Transition default */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dark Mode Variables Override */
+:root.dark {
+  --bg-main: #0B0E14;          /* Deep ocean midnight */
+  --bg-surface: #121820;       /* Card surfaces */
+  --bg-card: #121820;
+  --bg-input: #171E29;
+  --bg-hover: #1D2635;
+
+  --text-main: #F4F6F8;        /* Soft off-white */
+  --text-muted: #9AA5B1;       /* Light gray for descriptions */
+  --text-light: #6E7B8A;       /* Muted gray for metadata */
+  --text-on-primary: #FFFFFF;
+
+  --primary-light: rgba(255, 107, 53, 0.1);
+  --secondary-light: rgba(0, 78, 100, 0.2);
+  --accent-light: rgba(255, 184, 0, 0.1);
+
+  --border-color: #202A37;
+  
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 8px 16px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Reset and Global Styles */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  min-height: 100vh;
+  scroll-behavior: smooth;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  color: var(--text-main);
+  line-height: 1.25;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+button, input, textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+  outline: none;
+  background: none;
+  border: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-light);
+}
+
+/* Basic Layout Utilities */
+.app-container {
+  max-width: 480px; /* Force premium app layout on desktop, responsive on mobile */
+  margin: 0 auto;
+  min-height: 100vh;
+  position: relative;
+  background-color: var(--bg-main);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+}
+
+@media (min-width: 768px) {
+  .desktop-layout {
+    max-width: 1200px;
+    border: none;
+    box-shadow: none;
+  }
+}
+
+/* Common Layout Elements */
+.safe-padding-bottom {
+  padding-bottom: calc(var(--safe-bottom) + 80px); /* Adjust for bottom nav */
+}
+
+/* Shimmer/Skeleton Animation */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.shimmer-anim {
+  background: linear-gradient(90deg, 
+    var(--bg-input) 25%, 
+    var(--border-color) 37%, 
+    var(--bg-input) 63%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+/* Glassmorphism Styles */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.dark .glass {
+  background: rgba(18, 24, 32, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Pulse animation */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: .7;
+    transform: scale(0.97);
+  }
+}
+
+.pulse {
+  animation: pulse 2s infinite ease-in-out;
+}

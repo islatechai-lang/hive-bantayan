@@ -1,0 +1,73 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+  user-select: none;
+}
+
+/* Status variants */
+.pending {
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending);
+}
+
+.accepted {
+  background-color: var(--status-accepted-bg);
+  color: var(--status-accepted);
+}
+
+.preparing {
+  background-color: var(--status-preparing-bg);
+  color: var(--status-preparing);
+}
+
+.ready {
+  background-color: var(--status-ready-bg);
+  color: var(--status-ready);
+}
+
+.delivery {
+  background-color: var(--status-delivery-bg);
+  color: var(--status-delivery);
+}
+
+.completed {
+  background-color: var(--status-completed-bg);
+  color: var(--status-completed);
+}
+
+.cancelled {
+  background-color: var(--status-cancelled-bg);
+  color: var(--status-cancelled);
+}
+
+/* Core style variants */
+.primary {
+  background-color: var(--primary-light);
+  color: var(--primary);
+}
+
+.secondary {
+  background-color: var(--secondary-light);
+  color: var(--secondary);
+}
+
+.accent {
+  background-color: var(--accent-light);
+  color: #B28000;
+}
+
+.outline {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+}
+
+.pill {
+  border-radius: var(--radius-full);
+}

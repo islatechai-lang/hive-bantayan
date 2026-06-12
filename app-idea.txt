@@ -1,0 +1,569 @@
+Build a complete production-ready Android application called "Bantayan Hub".
+
+PURPOSE
+
+A local marketplace app exclusively for Bantayan Island.
+
+The platform allows:
+
+* Customers to discover and order products from local businesses.
+* Business owners to create their own storefronts.
+* Admins to manage the entire platform.
+
+The application should feel modern, premium, fast, and simple.
+
+==================================================
+
+TECH STACK
+
+Frontend:
+
+* Kotlin
+* Jetpack Compose
+* Material Design 3
+* MVVM Architecture
+
+Backend:
+
+* Firebase
+
+Services:
+
+* Firebase Authentication
+* Firestore Database
+* Firebase Cloud Messaging
+* Firebase Storage
+* Google Maps API
+
+==================================================
+
+AUTHENTICATION
+
+Login Method:
+
+* Google Sign-In ONLY
+
+No email/password.
+
+No phone authentication.
+
+After login:
+
+User can:
+
+* Browse as customer
+* Create a business
+
+One account can have both roles.
+
+User can switch between:
+
+* Buyer Mode
+* Business Mode
+
+At any time.
+
+==================================================
+
+ONBOARDING
+
+First launch:
+
+Choose:
+
+* Continue as Buyer
+* Create a Business
+
+Display short explanation of platform.
+
+==================================================
+
+BUYER FEATURES
+
+HOME PAGE
+
+Display:
+
+* Search bar
+* Featured businesses
+* Nearby businesses
+* Popular businesses
+* Categories
+
+Categories:
+
+* Food
+* Drinks
+* Grocery
+* Pharmacy
+* Hardware
+* Electronics
+* Clothing
+* Seafood
+* Other
+
+==================================================
+
+DISCOVERY FEED
+
+Businesses can publish posts.
+
+Examples:
+
+* New products
+* Discounts
+* Promotions
+* New menu items
+* Limited stock announcements
+
+Users can:
+
+* View feed
+* Like posts
+* Save posts
+
+Feed appears on home page.
+
+==================================================
+
+SEARCH
+
+Search by:
+
+* Product name
+* Business name
+* Category
+
+Instant search results.
+
+==================================================
+
+BUSINESS PROFILE PAGE
+
+Display:
+
+* Logo
+* Cover image
+* Description
+* Business hours
+* Contact number
+* Location
+* Ratings
+* Total completed orders
+
+Display products.
+
+Display feed posts.
+
+==================================================
+
+PRODUCTS
+
+Product fields:
+
+* Product name
+* Description
+* Price
+* Images
+* Category
+
+Options:
+
+* In stock
+* Out of stock
+
+==================================================
+
+PRODUCT VARIANTS
+
+Support:
+
+Pizza:
+
+* Small
+* Medium
+* Large
+
+Drinks:
+
+* Regular
+* Large
+
+Custom add-ons:
+
+* Extra cheese
+* Extra toppings
+* Additional options
+
+==================================================
+
+SHOPPING CART
+
+Add products.
+
+Adjust quantities.
+
+Add order notes.
+
+Display:
+
+* Subtotal
+* Delivery fee
+* Total
+
+==================================================
+
+SAVED ADDRESSES
+
+Users can save:
+
+* Home
+* Work
+* Custom
+
+Each address includes:
+
+* GPS coordinates
+* Landmark
+* Notes
+
+==================================================
+
+ORDER FLOW
+
+Statuses:
+
+Pending
+
+Accepted
+
+Preparing
+
+Ready
+
+Out For Delivery
+
+Completed
+
+Cancelled
+
+==================================================
+
+ORDER CANCELLATION RULES
+
+Customer may cancel:
+
+* While order is Pending
+
+Customer may NOT cancel:
+
+* After Accepted
+
+Business can:
+
+* Accept
+* Reject
+* Cancel with reason
+
+==================================================
+
+ORDER TRACKING
+
+Customer sees:
+
+* Current order status
+* Timeline updates
+* Estimated preparation time
+
+Realtime updates using Firestore listeners.
+
+==================================================
+
+NOTIFICATIONS
+
+Push notifications:
+
+Customer:
+
+* Order accepted
+* Order rejected
+* Preparing
+* Ready
+* Out for delivery
+* Completed
+
+Business:
+
+* New order
+* New review
+
+Admin:
+
+* New business registration
+* Reports
+
+Use Firebase Cloud Messaging.
+
+==================================================
+
+FAVORITES
+
+Users can:
+
+* Favorite stores
+* Favorite products
+
+==================================================
+
+ORDER HISTORY
+
+Store complete history.
+
+Allow reorder.
+
+==================================================
+
+REVIEWS
+
+Verified customers only.
+
+Features:
+
+* 1-5 star rating
+* Written review
+* Photo uploads
+
+==================================================
+
+BUSINESS OWNER FEATURES
+
+CREATE BUSINESS
+
+Fields:
+
+* Business name
+* Logo
+* Cover photo
+* Description
+* Contact number
+* Address
+* Location
+* Business hours
+
+Business requires admin approval.
+
+==================================================
+
+STORE MANAGEMENT
+
+Business owner can:
+
+* Edit store
+* Open/Close store
+* Pause orders
+
+==================================================
+
+PRODUCT MANAGEMENT
+
+Add/Edit/Delete products.
+
+Manage:
+
+* Price
+* Stock
+* Variants
+* Images
+
+==================================================
+
+INVENTORY
+
+Track:
+
+* Available stock
+* Sold quantity
+
+Auto mark out of stock.
+
+==================================================
+
+ORDER MANAGEMENT
+
+Receive instant notifications.
+
+View:
+
+* Pending orders
+* Active orders
+* Completed orders
+
+Actions:
+
+* Accept
+* Reject
+* Update status
+
+==================================================
+
+DELIVERY SETTINGS
+
+Business can configure:
+
+* Delivery fee
+* Delivery radius
+* Minimum order amount
+* Estimated preparation time
+
+==================================================
+
+PROMOTIONS
+
+Create:
+
+* Discounts
+* Promo codes
+* Sale announcements
+
+==================================================
+
+DISCOVERY FEED MANAGEMENT
+
+Business can post:
+
+* Promotions
+* New products
+* Announcements
+
+Upload images.
+
+==================================================
+
+BUSINESS ANALYTICS
+
+Display:
+
+* Orders today
+* Orders this week
+* Orders this month
+* Revenue
+* Top products
+
+==================================================
+
+CHAT SYSTEM
+
+Customer ↔ Business
+
+Support:
+
+* Text messages
+* Order references
+
+Realtime chat.
+
+==================================================
+
+ADMIN PANEL
+
+Manage:
+
+* Users
+* Businesses
+* Products
+* Orders
+* Reviews
+* Feed posts
+
+==================================================
+
+BUSINESS APPROVAL SYSTEM
+
+Approve:
+
+* New businesses
+
+Reject:
+
+* Fake businesses
+* Incomplete businesses
+
+Suspend businesses.
+
+==================================================
+
+REPORT SYSTEM
+
+Users can report:
+
+* Businesses
+* Products
+* Reviews
+
+==================================================
+
+ANNOUNCEMENTS
+
+Admin can broadcast notifications.
+
+==================================================
+
+MAP FEATURES
+
+Business locations.
+
+Customer addresses.
+
+Open directions in Google Maps.
+
+==================================================
+
+SECURITY
+
+Role-based permissions:
+
+* Buyer
+* Business
+* Admin
+
+Implement Firestore Security Rules.
+
+==================================================
+
+UI DESIGN
+
+Modern Android app.
+
+Use:
+
+* Jetpack Compose
+* Material Design 3
+
+Inspired by:
+
+* Foodpanda
+* Grab
+* Shopee
+
+Smooth animations.
+
+Dark mode support.
+
+Tablet support.
+
+==================================================
+
+DELIVERABLES
+
+Generate:
+
+* Complete Android Studio project
+* Firebase integration
+* Firestore schema
+* Cloud Functions
+* Push notifications
+* Authentication
+* Security rules
+* Production architecture
+* Deployment instructions
+* Clean scalable codebase
