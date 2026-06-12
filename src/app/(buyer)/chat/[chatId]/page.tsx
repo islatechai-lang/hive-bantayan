@@ -56,7 +56,7 @@ export default function ChatDetailPage() {
     async function initializeChat() {
       try {
         // 1. Fetch store info
-        const busRef = doc(db, COLLECTIONS.BUSINESSES, businessId);
+        const busRef = doc(db, COLLECTIONS.BUSINESSES, businessId as string);
         const busSnap = await getDoc(busRef);
         let currentBusinessData: any = null;
         if (busSnap.exists()) {
@@ -65,7 +65,7 @@ export default function ChatDetailPage() {
         }
 
         // 2. Setup chat document in collection if missing
-        const chatRef = doc(db, COLLECTIONS.CHATS, chatId);
+        const chatRef = doc(db, COLLECTIONS.CHATS, chatId as string);
         const chatSnap = await getDoc(chatRef);
 
         if (!chatSnap.exists() && currentBusinessData) {
@@ -143,7 +143,7 @@ export default function ChatDetailPage() {
       });
 
       // 2. Update chat summary meta
-      const chatRef = doc(db, COLLECTIONS.CHATS, chatId);
+      const chatRef = doc(db, COLLECTIONS.CHATS, chatId as string);
       await updateDoc(chatRef, {
         lastMessage: textToSend,
         lastMessageAt: serverTimestamp(),
