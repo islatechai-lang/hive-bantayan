@@ -21,7 +21,7 @@ export default function LoginPage() {
       const firebaseUser = await signInWithGoogle();
       setFirebaseUser(firebaseUser);
       
-      toast.success("Welcome to Bantayan Hub!");
+      toast.success("Welcome to Hive Bantayan!");
       router.push("/onboarding");
     } catch (error: any) {
       console.error("Login error:", error);
@@ -48,7 +48,7 @@ export default function LoginPage() {
           <Card className={styles.card}>
             <div className={styles.logoArea}>
               <div className={styles.logoIcon}>🏝️</div>
-              <span className={styles.logoText}>Bantayan Hub</span>
+              <span className={styles.logoText}>Hive Bantayan</span>
             </div>
 
             <div className={styles.infoArea}>

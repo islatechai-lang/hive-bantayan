@@ -24,7 +24,7 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.dark .glass {
+:global(.dark) .glass {
   background: rgba(18, 24, 32, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }

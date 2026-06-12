@@ -134,7 +134,7 @@ export default function CreateBusinessPage() {
       <div className={styles.container}>
         <div className={styles.intro}>
           <h1 className={styles.title}>Store Setup</h1>
-          <p className={styles.subtitle}>List your business on Bantayan Hub to reach thousands of local buyers.</p>
+          <p className={styles.subtitle}>List your business on Hive Bantayan to reach thousands of local buyers.</p>
         </div>
 
         <form onSubmit={handleSubmit} className={styles.form}>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutDashboard, ShoppingCart, Settings, ArrowLeft, Menu, X, PlusCircle, BarChart3, MessageSquare, Tag } from "lucide-react";
+import { LayoutDashboard, ShoppingCart, Settings, ArrowLeft, Menu, X, PlusCircle, MessageSquare, Tag } from "lucide-react";
 import { useUIStore } from "@/lib/stores/uiStore";
 import styles from "./layout.module.css";
 import { cn } from "@/lib/utils/cn";
@@ -21,11 +21,10 @@ export default function BusinessShellLayout({
 
   const navLinks = [
     { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard size={18} /> },
-    { label: "Orders Manager", href: "/orders", icon: <ShoppingCart size={18} /> },
+    { label: "Orders Manager", href: "/store-orders", icon: <ShoppingCart size={18} /> },
     { label: "Products List", href: "/products", icon: <PlusCircle size={18} /> },
-    { label: "Promo Codes", href: "/promotions", icon: <Tag size={18} /> },
-    { label: "Analytics", href: "/analytics", icon: <BarChart3 size={18} /> },
-    { label: "Chat Inbox", href: "/chat", icon: <MessageSquare size={18} /> },
+    { label: "Promo Codes", href: "/store-promotions", icon: <Tag size={18} /> },
+    { label: "Chat Inbox", href: "/store-chats", icon: <MessageSquare size={18} /> },
     { label: "Store Settings", href: "/settings", icon: <Settings size={18} /> },
   ];
 
@@ -70,7 +69,7 @@ export default function BusinessShellLayout({
               className={styles.drawer}
             >
               <div className={styles.drawerHeader}>
-                <span className={styles.drawerTitle}>Bantayan Hub</span>
+                <span className={styles.drawerTitle}>Hive Bantayan</span>
                 <button className={styles.menuBtn} onClick={() => setDrawerOpen(false)} aria-label="Close menu">
                   <X size={18} />
                 </button>

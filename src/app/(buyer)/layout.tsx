@@ -25,7 +25,7 @@ export default function BuyerShellLayout({
       <header className={styles.header}>
         <div className={styles.brand}>
           <Link href="/home" className={styles.brandLogo}>
-            🏝️ <span className={styles.brandText}>Bantayan Hub</span>
+            🏝️ <span className={styles.brandText}>Hive Bantayan</span>
           </Link>
         </div>
 

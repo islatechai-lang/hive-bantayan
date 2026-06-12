@@ -14,7 +14,7 @@
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.03);
 }
 
-.dark .navBar {
+:global(.dark) .navBar {
   background: rgba(18, 24, 32, 0.85);
   border-top-color: var(--border-color);
   box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.2);

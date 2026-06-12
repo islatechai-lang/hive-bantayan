@@ -53,7 +53,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
       <div className={styles.loadingContainer}>
         <div className={styles.loadingBox}>
           <div className={styles.logoRing} />
-          <h2 className={styles.loadingText}>Bantayan Hub</h2>
+          <h2 className={styles.loadingText}>Hive Bantayan</h2>
           <p className={styles.loadingSubtext}>Loading island vibes...</p>
           <div className={styles.shimmerBox}>
             <Skeleton height={8} width={120} variant="pill" />

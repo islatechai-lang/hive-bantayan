@@ -4,8 +4,8 @@
   "display": "standalone",
   "scope": "/",
   "start_url": "/",
-  "name": "Bantayan Hub",
-  "short_name": "Bantayan Hub",
+  "name": "Hive Bantayan",
+  "short_name": "Hive Bantayan",
   "description": "Bantayan Island's premier local marketplace. Discover local food, products, and more.",
   "icons": [
     {

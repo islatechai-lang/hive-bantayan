@@ -40,7 +40,7 @@ export default function LandingPage() {
         <header className={styles.header}>
           <div className={styles.logoWrapper}>
             <div className={styles.logoCircle}>🏝️</div>
-            <span className={styles.logoText}>Bantayan Hub</span>
+            <span className={styles.logoText}>Hive Bantayan</span>
           </div>
         </header>
 
@@ -54,7 +54,7 @@ export default function LandingPage() {
             <div className={styles.badgeRow}>
               <span className={styles.heroBadge}>
                 <Sparkles size={12} className={styles.sparkleIcon} />
-                Bantayan Island's Own App
+                Bantayan Island’s Own App
               </span>
             </div>
             <h1 className={styles.title}>
@@ -114,7 +114,7 @@ export default function LandingPage() {
         </main>
 
         <footer className={styles.footer}>
-          <p>© 2026 Bantayan Hub. All rights reserved.</p>
+          <p>© 2026 Hive Bantayan. All rights reserved.</p>
           <p className={styles.footerNote}>Proudly supporting local commerce in Bantayan Island, Cebu.</p>
         </footer>
       </div>

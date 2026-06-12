@@ -184,7 +184,7 @@ export default function BusinessDashboardPage() {
       <section className={styles.ordersSection}>
         <div className={styles.sectionHeader}>
           <h2 className={styles.sectionTitle}>Incoming Orders</h2>
-          <Button variant="text" size="sm" onClick={() => router.push("/orders")}>
+          <Button variant="text" size="sm" onClick={() => router.push("/store-orders")}>
             View All
           </Button>
         </div>

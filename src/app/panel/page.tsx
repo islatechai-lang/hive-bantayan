@@ -266,7 +266,7 @@ export default function AdminPanelPage() {
           </button>
           <div>
             <h1 className={styles.title}>Admin Panel</h1>
-            <p className={styles.subtitle}>Bantayan Hub Platform Management</p>
+            <p className={styles.subtitle}>Hive Bantayan Platform Management</p>
           </div>
         </header>
 

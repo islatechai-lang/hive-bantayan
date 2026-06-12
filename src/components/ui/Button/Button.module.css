@@ -140,9 +140,9 @@
   border-top-color: var(--primary);
 }
 
-.dark .outline .spinner,
-.dark .text .spinner,
-.dark .ghost .spinner {
+:global(.dark) .outline .spinner,
+:global(.dark) .text .spinner,
+:global(.dark) .ghost .spinner {
   border-color: rgba(255, 255, 255, 0.1);
   border-top-color: var(--primary);
 }

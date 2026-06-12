@@ -4,13 +4,13 @@ import AuthProvider from "@/lib/providers/AuthProvider";
 import { Toaster } from "react-hot-toast";
 
 export const metadata: Metadata = {
-  title: "Bantayan Hub — Local Marketplace & Delivery",
+  title: "Hive Bantayan — Local Marketplace & Delivery",
   description: "Discover local food, grocery, seafood, and items in Bantayan Island. Create your own shop or browse and track orders in real-time.",
-  applicationName: "Bantayan Hub",
+  applicationName: "Hive Bantayan",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Bantayan Hub",
+    title: "Hive Bantayan",
   },
   formatDetection: {
     telephone: false,

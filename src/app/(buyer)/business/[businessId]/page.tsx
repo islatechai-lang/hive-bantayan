@@ -65,7 +65,7 @@ export default function BusinessProfilePage() {
   // WhatsApp and Map URL helpers
   const whatsappUrl = createWhatsAppUrl(
     business.whatsapp || business.phone,
-    `Hello ${business.name}, I am browsing your store on Bantayan Hub and have a question!`
+    `Hello ${business.name}, I am browsing your store on Hive Bantayan and have a question!`
   );
 
   const mapUrl = createMapsUrl(business.lat, business.lng);

@@ -2,7 +2,7 @@
 // Bantayan Hub — Constants
 // ============================================================
 
-export const APP_NAME = "Bantayan Hub";
+export const APP_NAME = "Hive Bantayan";
 export const APP_DESCRIPTION = "Bantayan Island's local marketplace";
 export const APP_URL = "https://bantayanhub.com";
 

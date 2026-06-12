@@ -43,7 +43,7 @@ export default function OnboardingPage() {
         });
         setUser({ ...user, role: "buyer" });
         setMode("buyer");
-        toast.success("Ready to browse Bantayan Hub!");
+        toast.success("Ready to browse Hive Bantayan!");
         router.push("/home");
       } else {
         // User wants to register a business
@@ -68,7 +68,7 @@ export default function OnboardingPage() {
         <div className={styles.intro}>
           <h1 className={styles.title}>Choose Your Experience</h1>
           <p className={styles.subtitle}>
-            Bantayan Hub supports both roles. You can browse as a buyer or start your own local storefront.
+            Hive Bantayan supports both roles. You can browse as a buyer or start your own local storefront.
           </p>
         </div>
 

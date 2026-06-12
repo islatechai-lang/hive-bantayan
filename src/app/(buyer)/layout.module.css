@@ -12,7 +12,7 @@
   z-index: 100;
 }
 
-.dark .header {
+:global(.dark) .header {
   background: rgba(18, 24, 32, 0.85);
   border-bottom-color: var(--border-color);
 }
