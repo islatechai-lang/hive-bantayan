@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, query, onSnapshot, updateDoc, writeBatch, getDoc, setDoc } from "firebase/firestore";
-import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle, Compass, Lock, Settings } from "lucide-react";
+import { collection, doc, query, onSnapshot, updateDoc, writeBatch, deleteDoc, getDoc, setDoc } from "firebase/firestore";
+import { ArrowLeft, Store, Users, ClipboardCheck, UserCheck, AlertTriangle, Compass, Lock, Settings, Trash2, EyeOff, Eye } from "lucide-react";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -13,6 +13,7 @@ import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Badge from "@/components/ui/Badge/Badge";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
+import Modal from "@/components/ui/Modal/Modal";
 import styles from "./panel.module.css";
 
 type TabOption = "pending" | "stores" | "users" | "orders" | "settings";
@@ -34,6 +35,10 @@ export default function AdminPanelPage() {
   const [businesses, setBusinesses] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
+
+  // Admin store management
+  const [storeToDelete, setStoreToDelete] = useState<any | null>(null);
+  const [deletingStore, setDeletingStore] = useState(false);
 
   // Load saved password and check unlock status on mount
   useEffect(() => {
@@ -151,6 +156,74 @@ export default function AdminPanelPage() {
     } catch (err: any) {
       console.error("Error rejecting store:", err);
       toast.error(err.message || "Failed to reject store");
+    }
+  };
+
+  // Action: Unlist/suspend a verified store (hide from buyers)
+  const handleUnlistStore = async (business: any) => {
+    try {
+      const businessRef = doc(db, COLLECTIONS.BUSINESSES, business.id);
+      await updateDoc(businessRef, {
+        status: "unlisted",
+        isVerified: false,
+      });
+      toast.success(`"${business.name}" has been unlisted`);
+    } catch (err: any) {
+      console.error("Error unlisting store:", err);
+      toast.error(err.message || "Failed to unlist store");
+    }
+  };
+
+  // Action: Re-verify / relist a store
+  const handleRelistStore = async (business: any) => {
+    try {
+      const businessRef = doc(db, COLLECTIONS.BUSINESSES, business.id);
+      await updateDoc(businessRef, {
+        status: "approved",
+        isVerified: true,
+      });
+      toast.success(`"${business.name}" is now live again`);
+    } catch (err: any) {
+      console.error("Error relisting store:", err);
+      toast.error(err.message || "Failed to relist store");
+    }
+  };
+
+  // Action: Permanently delete a store from the admin panel
+  const handleAdminDeleteStore = async () => {
+    if (!storeToDelete) return;
+    setDeletingStore(true);
+    try {
+      const batch = writeBatch(db);
+
+      // Delete the business document
+      const businessRef = doc(db, COLLECTIONS.BUSINESSES, storeToDelete.id);
+      batch.delete(businessRef);
+
+      // Reset the owner's user doc back to buyer
+      if (storeToDelete.ownerId) {
+        const ownerRef = doc(db, COLLECTIONS.USERS, storeToDelete.ownerId);
+        batch.update(ownerRef, {
+          role: "buyer",
+          hasBusiness: false,
+          businessId: "",
+        });
+      }
+
+      await batch.commit();
+
+      // If the currently logged-in user is the owner, sync state
+      if (user && user.id === storeToDelete.ownerId) {
+        setUser({ ...user, role: "buyer" as any, hasBusiness: false, businessId: "" });
+      }
+
+      toast.success(`"${storeToDelete.name}" deleted permanently`);
+      setStoreToDelete(null);
+    } catch (err: any) {
+      console.error("Error deleting store:", err);
+      toast.error(err.message || "Failed to delete store");
+    } finally {
+      setDeletingStore(false);
     }
   };
 
@@ -403,6 +476,35 @@ export default function AdminPanelPage() {
                           <div><strong>Verified:</strong> {store.isVerified ? "Yes ✅" : "No ❌"}</div>
                           <div><strong>Orders:</strong> {store.totalOrders || 0}</div>
                         </div>
+                        <div className={styles.cardActions}>
+                          {store.status === "approved" || store.isVerified ? (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              leftIcon={<EyeOff size={14} />}
+                              onClick={() => handleUnlistStore(store)}
+                            >
+                              Unlist
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              leftIcon={<Eye size={14} />}
+                              onClick={() => handleRelistStore(store)}
+                            >
+                              Re-verify
+                            </Button>
+                          )}
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            leftIcon={<Trash2 size={14} />}
+                            onClick={() => setStoreToDelete(store)}
+                          >
+                            Delete
+                          </Button>
+                        </div>
                       </Card>
                     ))}
                   </div>
@@ -526,6 +628,32 @@ export default function AdminPanelPage() {
           </div>
         )}
       </div>
+
+      {/* Admin Delete Store Confirmation Modal */}
+      <Modal
+        isOpen={!!storeToDelete}
+        onClose={() => setStoreToDelete(null)}
+        title="Delete Business?"
+        footer={
+          <div style={{ display: "flex", gap: 10, width: "100%" }}>
+            <Button variant="outline" fullWidth onClick={() => setStoreToDelete(null)}>
+              Cancel
+            </Button>
+            <Button variant="danger" fullWidth loading={deletingStore} onClick={handleAdminDeleteStore}>
+              Yes, Delete Forever
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "12px 0", textAlign: "center" }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "rgba(239, 68, 68, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <AlertTriangle size={28} color="var(--status-cancelled)" />
+          </div>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
+            This will permanently remove <strong>{storeToDelete?.name}</strong> from Hive Bantayan, revoke the owner's business role, and cannot be undone.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

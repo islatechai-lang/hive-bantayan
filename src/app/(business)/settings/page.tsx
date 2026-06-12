@@ -2,23 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, RefreshCw } from "lucide-react";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { Save, Loader2, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { doc, getDoc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useUIStore } from "@/lib/stores/uiStore";
 import { toast } from "react-hot-toast";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/Input/Input";
 import Toggle from "@/components/ui/Toggle/Toggle";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
+import Modal from "@/components/ui/Modal/Modal";
 import styles from "./settings.module.css";
 
 export default function StoreSettingsPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, setUser } = useAuthStore();
+  const { setMode } = useUIStore();
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // Business States
   const [name, setName] = useState("");
@@ -89,6 +94,40 @@ export default function StoreSettingsPage() {
       toast.error(error.message || "Failed to save settings");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteBusiness = async () => {
+    if (!user?.businessId) return;
+    setDeleting(true);
+    try {
+      const batch = writeBatch(db);
+
+      // Delete the business document
+      const busRef = doc(db, COLLECTIONS.BUSINESSES, user.businessId);
+      batch.delete(busRef);
+
+      // Reset the user back to a regular buyer
+      const userRef = doc(db, COLLECTIONS.USERS, user.id);
+      batch.update(userRef, {
+        role: "buyer",
+        hasBusiness: false,
+        businessId: "",
+      });
+
+      await batch.commit();
+
+      // Update local state
+      setUser({ ...user, role: "buyer", hasBusiness: false, businessId: "" });
+      setMode("buyer");
+      setShowDeleteModal(false);
+      toast.success("Business deleted successfully");
+      router.push("/home");
+    } catch (error: any) {
+      console.error("Error deleting business:", error);
+      toast.error(error.message || "Failed to delete business");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -199,6 +238,51 @@ export default function StoreSettingsPage() {
           Save Configurations
         </Button>
       </form>
+
+      {/* Danger Zone */}
+      <div className={styles.dangerZone}>
+        <h3 className={styles.dangerTitle}>
+          <AlertTriangle size={16} />
+          Danger Zone
+        </h3>
+        <p className={styles.dangerDesc}>
+          Permanently delete your business listing and all associated data. This action cannot be undone.
+        </p>
+        <Button
+          variant="danger"
+          size="sm"
+          leftIcon={<Trash2 size={16} />}
+          onClick={() => setShowDeleteModal(true)}
+        >
+          Delete My Business
+        </Button>
+      </div>
+
+      {/* Delete Confirmation Modal */}
+      <Modal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete Business?"
+        footer={
+          <div style={{ display: "flex", gap: 10, width: "100%" }}>
+            <Button variant="outline" fullWidth onClick={() => setShowDeleteModal(false)}>
+              Cancel
+            </Button>
+            <Button variant="danger" fullWidth loading={deleting} onClick={handleDeleteBusiness}>
+              Yes, Delete Forever
+            </Button>
+          </div>
+        }
+      >
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, padding: "12px 0", textAlign: "center" }}>
+          <div style={{ width: 56, height: 56, borderRadius: "50%", backgroundColor: "rgba(239, 68, 68, 0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <AlertTriangle size={28} color="var(--status-cancelled)" />
+          </div>
+          <p style={{ fontSize: 14, color: "var(--text-muted)", lineHeight: 1.6 }}>
+            This will permanently remove <strong>{name}</strong> from Hive Bantayan. All your products, settings, and store data will be lost. Your account will revert to a regular buyer.
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }
