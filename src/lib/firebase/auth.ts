@@ -64,7 +64,23 @@ export async function getCurrentUserDoc(): Promise<User | null> {
   const userRef = doc(db, COLLECTIONS.USERS, firebaseUser.uid);
   const userSnap = await getDoc(userRef);
 
-  if (!userSnap.exists()) return null;
+  if (!userSnap.exists()) {
+    // Auto-create document if it doesn't exist (e.g. if signup failed earlier due to rules)
+    const newUser: Omit<User, "id"> = {
+      displayName: firebaseUser.displayName || "User",
+      email: firebaseUser.email || "",
+      photoUrl: firebaseUser.photoURL || "",
+      phone: "",
+      role: "buyer",
+      hasBusiness: false,
+      businessId: null,
+      fcmToken: "",
+      recentlyViewed: [],
+      createdAt: serverTimestamp() as any,
+    };
+    await setDoc(userRef, newUser);
+    return { id: firebaseUser.uid, ...newUser } as User;
+  }
 
   return { id: userSnap.id, ...userSnap.data() } as User;
 }
