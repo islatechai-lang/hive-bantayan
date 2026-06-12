@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { collection, query, where, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
@@ -10,6 +11,7 @@ import Skeleton from "@/components/ui/Skeleton/Skeleton";
 import styles from "./store-chats.module.css";
 
 export default function StoreChatsPage() {
+  const router = useRouter();
   const { user } = useAuthStore();
   const [chats, setChats] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -80,7 +82,12 @@ export default function StoreChatsPage() {
       ) : (
         <div className={styles.chatList}>
           {chats.map((chat) => (
-            <div key={chat.id} className={styles.chatItem}>
+            <div
+              key={chat.id}
+              className={styles.chatItem}
+              onClick={() => router.push(`/chat/${chat.customerId || chat.id.split("_")[0]}`)}
+              style={{ cursor: "pointer" }}
+            >
               <div className={styles.avatar}>
                 {chat.buyerName?.[0]?.toUpperCase() || "?"}
               </div>

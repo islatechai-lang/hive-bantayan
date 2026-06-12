@@ -20,65 +20,83 @@ import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { formatTime } from "@/lib/utils/formatters";
+import { sendPushNotification } from "@/lib/utils/onesignal";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
 import styles from "../chat.module.css";
 
 export default function ChatDetailPage() {
   const router = useRouter();
   const params = useParams();
-  const businessId = params.chatId as string; // We query by business ID directly
 
   const { user } = useAuthStore();
   const [messages, setMessages] = useState<any[]>([]);
   const [business, setBusiness] = useState<any | null>(null);
+  const [chatMeta, setChatMeta] = useState<any | null>(null);
   const [inputText, setInputText] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatId = user ? `${user.id}_${businessId}` : "";
+
+  // Determine role-aware properties
+  const isBusinessUser = user?.role === "business" && !!user?.businessId;
+  const buyerId = isBusinessUser ? (params.chatId as string) : user?.id;
+  const businessId = isBusinessUser ? user.businessId : (params.chatId as string);
+  const chatId = buyerId && businessId ? `${buyerId}_${businessId}` : "";
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // Load business info and messages
+  // Load business info, chat meta, and messages
   useEffect(() => {
-    if (!user || !businessId) return;
-    const currentUser = user;
+    if (!user || !buyerId || !businessId || !chatId) return;
 
     async function initializeChat() {
       try {
         // 1. Fetch store info
         const busRef = doc(db, COLLECTIONS.BUSINESSES, businessId);
         const busSnap = await getDoc(busRef);
+        let currentBusinessData: any = null;
         if (busSnap.exists()) {
-          setBusiness({ id: busSnap.id, ...busSnap.data() });
+          currentBusinessData = { id: busSnap.id, ...busSnap.data() };
+          setBusiness(currentBusinessData);
         }
 
         // 2. Setup chat document in collection if missing
         const chatRef = doc(db, COLLECTIONS.CHATS, chatId);
         const chatSnap = await getDoc(chatRef);
 
-        if (!chatSnap.exists() && busSnap.exists()) {
-          const storeData = busSnap.data();
-          await setDoc(chatRef, {
-            participants: [currentUser.id, businessId],
-            customerId: currentUser.id,
-            customerName: currentUser.displayName,
-            customerPhoto: currentUser.photoUrl,
-            businessId,
-            businessName: storeData.name,
-            businessLogo: storeData.logoUrl,
-            lastMessage: "Conversation started",
-            lastMessageAt: serverTimestamp(),
-            unreadCustomer: 0,
-            unreadBusiness: 0,
-          });
+        if (!chatSnap.exists() && currentBusinessData) {
+          // If this is a buyer opening it, let's create the default document
+          if (!isBusinessUser) {
+            await setDoc(chatRef, {
+              participants: [buyerId, businessId],
+              customerId: buyerId,
+              customerName: user.displayName,
+              customerPhoto: user.photoUrl,
+              businessId,
+              businessName: currentBusinessData.name,
+              businessLogo: currentBusinessData.logoUrl,
+              lastMessage: "Conversation started",
+              lastMessageAt: serverTimestamp(),
+              unreadCustomer: 0,
+              unreadBusiness: 0,
+            });
+            const freshSnap = await getDoc(chatRef);
+            setChatMeta(freshSnap.data());
+          }
         } else if (chatSnap.exists()) {
-          // Clear customer unread counts on enter
-          await updateDoc(chatRef, { unreadCustomer: 0 });
+          const chatData = chatSnap.data();
+          setChatMeta(chatData);
+
+          // Clear unread counts for the active user role
+          if (isBusinessUser) {
+            await updateDoc(chatRef, { unreadBusiness: 0 });
+          } else {
+            await updateDoc(chatRef, { unreadCustomer: 0 });
+          }
         }
 
         // 3. Listen to messages subcollection in real-time
@@ -102,11 +120,11 @@ export default function ChatDetailPage() {
     }
 
     initializeChat();
-  }, [user, businessId, chatId]);
+  }, [user, buyerId, businessId, chatId, isBusinessUser]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim() || !user || !business) return;
+    if (!inputText.trim() || !user || !chatId) return;
 
     setSending(true);
     const textToSend = inputText.trim();
@@ -129,8 +147,25 @@ export default function ChatDetailPage() {
       await updateDoc(chatRef, {
         lastMessage: textToSend,
         lastMessageAt: serverTimestamp(),
-        unreadBusiness: 1, // Increment business side alert
+        unreadBusiness: isBusinessUser ? 0 : 1,
+        unreadCustomer: isBusinessUser ? 1 : 0,
       });
+
+      // 3. Send OneSignal Push Notification
+      try {
+        const targetUserId = isBusinessUser ? buyerId : business?.ownerId;
+        if (targetUserId) {
+          const senderName = isBusinessUser ? `${business?.name || user.displayName} (Store)` : user.displayName;
+          await sendPushNotification(
+            [targetUserId],
+            `New message from ${senderName}`,
+            textToSend,
+            { chatId, type: "chat_message" }
+          );
+        }
+      } catch (pushErr) {
+        console.error("OneSignal chat message notification failed:", pushErr);
+      }
 
     } catch (error) {
       console.error("Error sending message:", error);
@@ -152,6 +187,14 @@ export default function ChatDetailPage() {
     );
   }
 
+  const headerTitle = isBusinessUser
+    ? (chatMeta?.customerName || "Customer")
+    : (business?.name || "Store Owner");
+
+  const headerAvatar = isBusinessUser
+    ? (chatMeta?.customerPhoto || "/images/logo-placeholder.jpg")
+    : (business?.logoUrl || "/images/logo-placeholder.jpg");
+
   return (
     <div className="app-container">
       <div className={styles.chatBox}>
@@ -160,16 +203,17 @@ export default function ChatDetailPage() {
           <button className={styles.backBtn} onClick={() => router.back()} aria-label="Go back">
             <ArrowLeft size={20} />
           </button>
-          <div className={styles.avatar} style={{ width: 40, height: 40 }}>
+          <div className={styles.avatar} style={{ position: "relative", width: 40, height: 40 }}>
             <Image
-              src={business?.logoUrl || "/images/logo-placeholder.jpg"}
-              alt={business?.name || "Business"}
+              src={headerAvatar}
+              alt={headerTitle}
               fill
               className={styles.avatarImage}
+              unoptimized
             />
           </div>
           <div>
-            <h3 style={{ fontSize: 15, fontWeight: 700 }}>{business?.name || "Store Owner"}</h3>
+            <h3 style={{ fontSize: 15, fontWeight: 700 }}>{headerTitle}</h3>
             <span style={{ fontSize: 11, color: "var(--status-accepted)" }}>Online</span>
           </div>
         </header>
@@ -178,7 +222,7 @@ export default function ChatDetailPage() {
         <div className={styles.messagesList}>
           {messages.length === 0 ? (
             <div style={{ textAlign: "center", margin: "auto", color: "var(--text-light)", fontSize: 13 }}>
-              Say hello to start ordering or asking questions!
+              Say hello to start the conversation!
             </div>
           ) : (
             messages.map((msg) => {

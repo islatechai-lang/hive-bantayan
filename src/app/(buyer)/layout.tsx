@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ShoppingCart, Sun, Moon } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useUIStore } from "@/lib/stores/uiStore";
+import Image from "next/image";
 import BottomNav from "@/components/shared/BottomNav/BottomNav";
 import styles from "./layout.module.css";
 
@@ -25,7 +26,14 @@ export default function BuyerShellLayout({
       <header className={styles.header}>
         <div className={styles.brand}>
           <Link href="/home" className={styles.brandLogo}>
-            🏝️ <span className={styles.brandText}>Hive Bantayan</span>
+            <Image
+              src="/hb-logo.png"
+              alt="Logo"
+              width={28}
+              height={28}
+              style={{ marginRight: 8, borderRadius: "20%" }}
+            />
+            <span className={styles.brandText}>Hive Bantayan</span>
           </Link>
         </div>
 

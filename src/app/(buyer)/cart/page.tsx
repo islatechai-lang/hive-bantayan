@@ -7,7 +7,8 @@ import { motion } from "framer-motion";
 import { Trash2, ShoppingBag, MapPin, CreditCard, ArrowRight, Loader2 } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useAuthStore } from "@/lib/stores/authStore";
-import { addDocument } from "@/lib/firebase/firestore";
+import { addDocument, getDocument } from "@/lib/firebase/firestore";
+import { sendPushNotification } from "@/lib/utils/onesignal";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { formatCurrency, generateOrderNumber } from "@/lib/utils/formatters";
 import { toast } from "react-hot-toast";
@@ -93,6 +94,22 @@ export default function CartPage() {
       };
 
       const orderId = await addDocument(COLLECTIONS.ORDERS, newOrder);
+
+      // Fetch store owner and notify via OneSignal
+      try {
+        const businessDoc: any = await getDocument(COLLECTIONS.BUSINESSES, firstItem.businessId);
+        if (businessDoc && businessDoc.ownerId) {
+          await sendPushNotification(
+            [businessDoc.ownerId],
+            "New Order Received! 🛍️",
+            `Order ${orderNumber} (${formatCurrency(total)}) has been placed by ${user.displayName}.`,
+            { orderId, type: "new_order" }
+          );
+        }
+      } catch (pushErr) {
+        console.error("OneSignal notification failed:", pushErr);
+      }
+
       toast.success("Order placed successfully!");
       clearCart();
       

@@ -1,9 +1,11 @@
 "use client";
 
 import React, { useEffect } from "react";
+import Image from "next/image";
 import { onAuthChanged, getCurrentUserDoc } from "@/lib/firebase/auth";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
+import { registerOneSignalUser } from "@/lib/utils/onesignal";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
 import styles from "./AuthProvider.module.css";
 
@@ -11,7 +13,7 @@ export interface AuthProviderProps {
   children: React.ReactNode;
 }
 
-const AuthProvider = ({ children }: AuthProviderProps) => {
+export const AuthProvider = ({ children }: AuthProviderProps) => {
   const { setFirebaseUser, setUser, setLoading, isLoading } = useAuthStore();
   const { setTheme, theme } = useUIStore();
 
@@ -34,6 +36,7 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
         try {
           const userDoc = await getCurrentUserDoc();
           setUser(userDoc);
+          registerOneSignalUser(firebaseUser.uid);
         } catch (error) {
           console.error("Error fetching user document:", error);
           setUser(null);
@@ -52,7 +55,13 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
     return (
       <div className={styles.loadingContainer}>
         <div className={styles.loadingBox}>
-          <div className={styles.logoRing} />
+          <Image
+            src="/hb-logo.png"
+            alt="Hive Bantayan Logo"
+            width={80}
+            height={80}
+            style={{ borderRadius: "20%", marginBottom: 16 }}
+          />
           <h2 className={styles.loadingText}>Hive Bantayan</h2>
           <p className={styles.loadingSubtext}>Loading island vibes...</p>
           <div className={styles.shimmerBox}>
@@ -67,4 +76,3 @@ const AuthProvider = ({ children }: AuthProviderProps) => {
 };
 
 export default AuthProvider;
-export { AuthProvider };

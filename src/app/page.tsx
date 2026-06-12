@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ShoppingBag, Store, ArrowRight, ShieldCheck, Compass, Sparkles } from "lucide-react";
+import Image from "next/image";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
 import Button from "@/components/ui/Button/Button";
@@ -39,7 +40,13 @@ export default function LandingPage() {
 
         <header className={styles.header}>
           <div className={styles.logoWrapper}>
-            <div className={styles.logoCircle}>🏝️</div>
+            <Image
+              src="/hb-logo.png"
+              alt="Hive Bantayan Logo"
+              width={40}
+              height={40}
+              style={{ borderRadius: "20%" }}
+            />
             <span className={styles.logoText}>Hive Bantayan</span>
           </div>
         </header>

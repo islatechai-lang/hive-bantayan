@@ -7,6 +7,7 @@ import { ArrowLeft, Lock, Loader2 } from "lucide-react";
 import { signInWithGoogle } from "@/lib/firebase/auth";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { toast } from "react-hot-toast";
+import Image from "next/image";
 import Card from "@/components/ui/Card/Card";
 import styles from "./login.module.css";
 
@@ -24,8 +25,8 @@ export default function LoginPage() {
       toast.success("Welcome to Hive Bantayan!");
       router.push("/onboarding");
     } catch (error: any) {
-      console.error("Login error:", error);
-      toast.error(error.message || "Failed to sign in with Google");
+      console.error("Login failed:", error);
+      toast.error(error.message || "Authentication failed");
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,13 @@ export default function LoginPage() {
         >
           <Card className={styles.card}>
             <div className={styles.logoArea}>
-              <div className={styles.logoIcon}>🏝️</div>
+              <Image
+                src="/hb-logo.png"
+                alt="Hive Bantayan Logo"
+                width={80}
+                height={80}
+                style={{ borderRadius: "20%" }}
+              />
               <span className={styles.logoText}>Hive Bantayan</span>
             </div>
 

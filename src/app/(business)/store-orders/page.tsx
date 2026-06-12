@@ -12,6 +12,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
+import { sendPushNotification } from "@/lib/utils/onesignal";
 import styles from "./store-orders.module.css";
 
 const STATUSES = ["all", "pending", "accepted", "preparing", "ready", "out_for_delivery", "completed", "cancelled"];
@@ -52,6 +53,22 @@ export default function StoreOrdersPage() {
           { status, timestamp: new Date(), note: `Status updated to: ${status.replace(/_/g, " ").toUpperCase()}` },
         ],
       });
+
+      // Send push notification to the customer
+      try {
+        if (order.customerId) {
+          const readableStatus = status.replace(/_/g, " ").toUpperCase();
+          await sendPushNotification(
+            [order.customerId],
+            "Order Status Update! 📍",
+            `Your order ${order.orderNumber || `#${orderId.slice(-6)}`} is now [${readableStatus}].`,
+            { orderId, type: "order_status" }
+          );
+        }
+      } catch (pushErr) {
+        console.error("OneSignal status update notification failed:", pushErr);
+      }
+
       toast.success(`Order status updated to: ${status}`);
     } catch (error) {
       console.error("Error updating order status:", error);
