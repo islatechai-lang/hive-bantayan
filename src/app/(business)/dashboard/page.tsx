@@ -116,13 +116,26 @@ export default function BusinessDashboardPage() {
 
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
-        <Skeleton height={20} width={120} />
-        <div style={{ display: "flex", gap: 16, marginTop: 20 }}>
-          <Skeleton height={80} style={{ flex: 1 }} />
-          <Skeleton height={80} style={{ flex: 1 }} />
+      <div className={styles.container}>
+        <Skeleton height={32} width={180} style={{ marginBottom: 24 }} />
+        
+        {/* Stats Grid Skeleton */}
+        <div className={styles.statsGrid}>
+          <Skeleton height={84} />
+          <Skeleton height={84} />
+          <Skeleton height={84} />
+          <Skeleton height={84} />
         </div>
-        <Skeleton height={140} style={{ marginTop: 24 }} />
+        
+        {/* Orders Section Skeleton */}
+        <div style={{ marginTop: 32, display: "flex", flexDirection: "column", gap: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <Skeleton height={24} width={150} />
+            <Skeleton height={20} width={60} />
+          </div>
+          <Skeleton height={110} />
+          <Skeleton height={110} />
+        </div>
       </div>
     );
   }
