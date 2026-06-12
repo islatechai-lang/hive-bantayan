@@ -477,6 +477,10 @@ export default function AdminPanelPage() {
                       </Card>
                     ))}
                   </div>
+                )}
+              </section>
+            )}
+
             {/* TAB: SETTINGS */}
             {activeTab === "settings" && (
               <section className={styles.section}>
