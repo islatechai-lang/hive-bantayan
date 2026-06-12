@@ -7,6 +7,7 @@ import { Store, Upload, CheckCircle2, ArrowRight } from "lucide-react";
 import { addDocument, updateDocument } from "@/lib/firebase/firestore";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
+import { useUIStore } from "@/lib/stores/uiStore";
 import { generateSlug } from "@/lib/utils/formatters";
 import { toast } from "react-hot-toast";
 import Button from "@/components/ui/Button/Button";
