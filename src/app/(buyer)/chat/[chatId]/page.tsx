@@ -74,8 +74,8 @@ export default function ChatDetailPage() {
             await setDoc(chatRef, {
               participants: [buyerId, businessId],
               customerId: buyerId,
-              customerName: user.displayName,
-              customerPhoto: user.photoUrl,
+              customerName: user?.displayName || "Customer",
+              customerPhoto: user?.photoUrl || "/images/logo-placeholder.jpg",
               businessId,
               businessName: currentBusinessData.name,
               businessLogo: currentBusinessData.logoUrl,
