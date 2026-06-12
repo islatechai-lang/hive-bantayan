@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { User, Store, ShieldCheck, MapPin, LogOut, ChevronRight, RefreshCw, Moon, Sun, Loader2 } from "lucide-react";
 import { signOut } from "@/lib/firebase/auth";
+import { updateDocument } from "@/lib/firebase/firestore";
+import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
 import { toast } from "react-hot-toast";
@@ -16,9 +18,26 @@ import styles from "./profile.module.css";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const { user, reset: resetAuth } = useAuthStore();
+  const { user, setUser, reset: resetAuth } = useAuthStore();
   const { currentMode, setMode, theme, toggleTheme } = useUIStore();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [updatingRole, setUpdatingRole] = useState(false);
+
+  const handleBecomeAdmin = async () => {
+    if (!user) return;
+    setUpdatingRole(true);
+    try {
+      const newRole = user.role === "admin" ? "buyer" : "admin";
+      await updateDocument(COLLECTIONS.USERS, user.id, { role: newRole });
+      setUser({ ...user, role: newRole });
+      toast.success(`Role updated to ${newRole}!`);
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Failed to update role");
+    } finally {
+      setUpdatingRole(false);
+    }
+  };
 
   const handleModeChange = (checked: boolean) => {
     if (checked) {
@@ -144,6 +163,24 @@ export default function ProfilePage() {
             </div>
           </button>
         )}
+      </section>
+
+      {/* Dev Tools Section */}
+      <section className={styles.menuSection} style={{ marginTop: 12 }}>
+        <h3 className={styles.sectionTitle}>Developer Tools</h3>
+        <button 
+          className={styles.menuItem} 
+          onClick={handleBecomeAdmin}
+          disabled={updatingRole}
+        >
+          <div className={styles.menuLeft}>
+            <ShieldCheck size={18} className={styles.menuIcon} style={{ color: "var(--accent)" }} />
+            <span>{user?.role === "admin" ? "Remove Admin Role" : "Become Admin (Dev Mode)"}</span>
+          </div>
+          <div className={styles.menuRight}>
+            {updatingRole ? <Loader2 size={16} className="pulse" /> : <ChevronRight size={16} />}
+          </div>
+        </button>
       </section>
 
       {/* Logout options */}

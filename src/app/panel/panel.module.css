@@ -1,0 +1,228 @@
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 16px;
+}
+
+.backBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  transition: all var(--transition-fast);
+}
+
+.backBtn:hover {
+  background-color: var(--bg-hover);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.tabs::-webkit-scrollbar {
+  display: none; /* Safari/Chrome */
+}
+
+.tab {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border-radius: var(--radius-full);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.tab:hover {
+  color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.activeTab {
+  color: var(--text-on-primary);
+  background-color: var(--primary);
+}
+
+.activeTab:hover {
+  color: var(--text-on-primary);
+  background-color: var(--primary-hover);
+}
+
+/* Content Sections */
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-light);
+  background-color: var(--bg-surface);
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--border-color);
+}
+
+.emptyIcon {
+  margin-bottom: 16px;
+  opacity: 0.5;
+  color: var(--primary);
+}
+
+/* Cards & Lists */
+.cardList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.itemCard {
+  padding: 16px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: all var(--transition-fast);
+}
+
+.itemCard:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-focus);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.cardMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cardActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+}
+
+/* User Card specific */
+.userCard {
+  align-items: center;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.userName {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.userEmail {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.roleSelect {
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-input);
+  color: var(--text-main);
+  font-weight: 500;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.roleSelect:focus {
+  border-color: var(--primary);
+}
+
+/* Badge specific override helper styles if needed */
+.statusBadge {
+  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* Detail Info */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  font-size: 13px;
+  background-color: var(--bg-main);
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-color);
+}
