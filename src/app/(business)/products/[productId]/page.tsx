@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Save, Plus, Trash2, ImagePlus, X } from "lucide-react";
 import { doc, getDoc, setDoc, updateDoc, collection } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
+import { uploadFile } from "@/lib/firebase/storage";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { toast } from "react-hot-toast";
@@ -30,7 +32,9 @@ export default function AddEditProductPage() {
   const [price, setPrice] = useState("");
   const [comparePrice, setComparePrice] = useState("");
   const [category, setCategory] = useState("Main Course");
-  const [imageUrl, setImageUrl] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   // Custom Variants options state (e.g. Pizza Sizes)
   const [variantName, setVariantName] = useState("Size");
@@ -54,7 +58,9 @@ export default function AddEditProductPage() {
           setPrice(data.price.toString());
           setComparePrice(data.compareAtPrice?.toString() || "");
           setCategory(data.category);
-          setImageUrl(data.images?.[0] || "");
+          if (data.images?.[0]) {
+            setImagePreview(data.images[0]);
+          }
           if (data.variants && data.variants.length > 0) {
             setVariantName(data.variants[0].name);
             setVariantsList(data.variants[0].options);
@@ -93,14 +99,22 @@ export default function AddEditProductPage() {
       return;
     }
 
-    if (!imageUrl.trim()) {
-      toast.error("Please add a product image URL");
+    if (!imageFile && !imagePreview) {
+      toast.error("Please add a product image");
       return;
     }
 
     setLoading(true);
 
     try {
+      // Upload new image if a file was selected
+      let finalImageUrl = imagePreview || "";
+      if (imageFile) {
+        toast.loading("Uploading image...", { id: "img-upload" });
+        finalImageUrl = await uploadFile(`businesses/${user.businessId}/products`, imageFile);
+        toast.dismiss("img-upload");
+      }
+
       const formattedVariants = variantsList.filter((v) => v.label.trim() !== "");
       const productPayload = {
         businessId: user.businessId,
@@ -109,7 +123,7 @@ export default function AddEditProductPage() {
         description: description.trim(),
         price: Number(price),
         compareAtPrice: comparePrice ? Number(comparePrice) : null,
-        images: [imageUrl.trim()],
+        images: [finalImageUrl],
         category: category.trim(),
         inStock: true,
         stockQty: 999,
@@ -195,13 +209,59 @@ export default function AddEditProductPage() {
             />
           </div>
 
-          <Input
-            label="Product Image URL"
-            placeholder="e.g. https://example.com/shrimp.jpg"
-            value={imageUrl}
-            onChange={(e) => setImageUrl(e.target.value)}
-            required
-          />
+          {/* Product Image Upload */}
+          <div className={styles.imageUploadSection}>
+            <label className={styles.uploadLabel}>Product Image *</label>
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error("Image must be under 5MB");
+                    return;
+                  }
+                  setImageFile(file);
+                  setImagePreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+            {imagePreview ? (
+              <div className={styles.imgPreviewWrapper}>
+                <Image
+                  src={imagePreview}
+                  alt="Product preview"
+                  width={160}
+                  height={120}
+                  className={styles.imgPreview}
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  className={styles.imgRemoveBtn}
+                  onClick={() => {
+                    setImageFile(null);
+                    setImagePreview(null);
+                    if (imageInputRef.current) imageInputRef.current.value = "";
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <div
+                className={styles.imgUploadBox}
+                onClick={() => imageInputRef.current?.click()}
+              >
+                <ImagePlus size={32} className={styles.imgUploadIcon} />
+                <span className={styles.imgUploadText}>Tap to upload product photo</span>
+                <span className={styles.imgUploadHint}>PNG, JPG up to 5MB</span>
+              </div>
+            )}
+          </div>
 
           <Input
             label="Menu Category"
