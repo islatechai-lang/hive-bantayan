@@ -30,6 +30,7 @@ export default function CreateBusinessPage() {
   const [deliveryFee, setDeliveryFee] = useState("39");
   const [minOrder, setMinOrder] = useState("150");
   const [prepTime, setPrepTime] = useState("30");
+  const [logoUrl, setLogoUrl] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,7 +51,7 @@ export default function CreateBusinessPage() {
         name: name.trim(),
         slug,
         description: description.trim(),
-        logoUrl: "https://images.unsplash.com/photo-1473093295043-cdd812d0e601?auto=format&fit=crop&w=150&q=80", // Standard premium mockup logo
+        logoUrl: logoUrl.trim(),
         coverUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80", // Standard premium mockup cover
         category,
         phone: phone.trim(),
@@ -154,6 +155,13 @@ export default function CreateBusinessPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
+          />
+
+          <Input
+            label="Store Logo Image URL (Optional)"
+            placeholder="e.g. https://example.com/logo.png (or leave blank for initials)"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
           />
 
           <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

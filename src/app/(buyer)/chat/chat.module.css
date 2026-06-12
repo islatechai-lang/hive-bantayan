@@ -123,9 +123,14 @@
 }
 
 .backBtn {
+  background: none;
+  border: none;
+  padding: 0;
   color: var(--text-muted);
   cursor: pointer;
   display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .messagesList {
@@ -217,6 +222,8 @@
   height: 40px;
   border-radius: 50%;
   background-color: var(--primary);
+  border: none;
+  padding: 0;
   color: #FFFFFF;
   transition: all var(--transition-fast);
 }

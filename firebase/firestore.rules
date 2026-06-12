@@ -69,14 +69,22 @@ service cloud.firestore {
 
     // ---- CHATS COLLECTION ----
     match /chats/{chatId} {
-      allow read: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole('admin'));
-      allow create: if isSignedIn();
-      allow update: if isSignedIn() && (request.auth.uid in resource.data.participants || hasRole('admin'));
-      allow delete: if hasRole('admin');
+      allow read, write: if isSignedIn() && (
+        resource == null ||
+        resource.data.customerId == request.auth.uid ||
+        (hasKey(resource.data, "businessId") && resource.data.businessId == getUserData().businessId) ||
+        request.auth.uid in resource.data.participants ||
+        hasRole('admin')
+      );
+
+      // Helper function to check if resource has a key
+      function hasKey(data, key) {
+        return key in data;
+      }
 
       // Messages Subcollection
       match /messages/{messageId} {
-        allow read: if isSignedIn() && (request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants || hasRole('admin'));
+        allow read: if isSignedIn();
         allow create: if isSignedIn() && request.resource.data.senderId == request.auth.uid;
         allow update, delete: if hasRole('admin');
       }

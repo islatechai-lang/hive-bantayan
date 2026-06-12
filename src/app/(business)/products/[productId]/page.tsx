@@ -30,6 +30,7 @@ export default function AddEditProductPage() {
   const [price, setPrice] = useState("");
   const [comparePrice, setComparePrice] = useState("");
   const [category, setCategory] = useState("Main Course");
+  const [imageUrl, setImageUrl] = useState("");
 
   // Custom Variants options state (e.g. Pizza Sizes)
   const [variantName, setVariantName] = useState("Size");
@@ -53,6 +54,7 @@ export default function AddEditProductPage() {
           setPrice(data.price.toString());
           setComparePrice(data.compareAtPrice?.toString() || "");
           setCategory(data.category);
+          setImageUrl(data.images?.[0] || "");
           if (data.variants && data.variants.length > 0) {
             setVariantName(data.variants[0].name);
             setVariantsList(data.variants[0].options);
@@ -91,6 +93,11 @@ export default function AddEditProductPage() {
       return;
     }
 
+    if (!imageUrl.trim()) {
+      toast.error("Please add a product image URL");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -102,7 +109,7 @@ export default function AddEditProductPage() {
         description: description.trim(),
         price: Number(price),
         compareAtPrice: comparePrice ? Number(comparePrice) : null,
-        images: ["https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=300&q=80"], // Standard mockup placeholder
+        images: [imageUrl.trim()],
         category: category.trim(),
         inStock: true,
         stockQty: 999,
@@ -187,6 +194,14 @@ export default function AddEditProductPage() {
               onChange={(e) => setComparePrice(e.target.value)}
             />
           </div>
+
+          <Input
+            label="Product Image URL"
+            placeholder="e.g. https://example.com/shrimp.jpg"
+            value={imageUrl}
+            onChange={(e) => setImageUrl(e.target.value)}
+            required
+          />
 
           <Input
             label="Menu Category"

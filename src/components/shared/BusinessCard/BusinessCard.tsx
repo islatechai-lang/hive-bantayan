@@ -45,13 +45,20 @@ const BusinessCard = ({ business }: BusinessCardProps) => {
 
       {/* Logo Container Overlapping */}
       <div className={styles.logoWrapper}>
-        <Image
-          src={business.logoUrl || "/images/logo-placeholder.jpg"}
-          alt={`${business.name} logo`}
-          width={50}
-          height={50}
-          className={styles.logoImage}
-        />
+        {business.logoUrl && business.logoUrl !== "" && !business.logoUrl.includes("logo-placeholder") ? (
+          <Image
+            src={business.logoUrl}
+            alt={`${business.name} logo`}
+            width={50}
+            height={50}
+            className={styles.logoImage}
+            unoptimized
+          />
+        ) : (
+          <div className={styles.initialsLogo}>
+            {business.name ? business.name.charAt(0).toUpperCase() : "?"}
+          </div>
+        )}
       </div>
 
       {/* Card Content details */}

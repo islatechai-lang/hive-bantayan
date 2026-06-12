@@ -50,10 +50,20 @@ export default function ChatListPage() {
 
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
-        <Skeleton height={20} width={120} />
-        <Skeleton height={80} style={{ marginTop: 24 }} />
-        <Skeleton height={80} style={{ marginTop: 12 }} />
+      <div className={styles.container} style={{ padding: 20 }}>
+        <Skeleton height={32} width={160} style={{ marginBottom: 20 }} />
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} style={{ display: "flex", gap: 14, padding: "16px 0", borderBottom: "1px solid var(--border-color)" }}>
+            <Skeleton height={48} width={48} variant="circle" />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", justifyContent: "space-between" }}>
+                <Skeleton height={16} width={120} />
+                <Skeleton height={12} width={50} />
+              </div>
+              <Skeleton height={14} width="80%" />
+            </div>
+          </div>
+        ))}
       </div>
     );
   }

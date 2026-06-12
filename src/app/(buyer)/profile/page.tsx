@@ -165,24 +165,6 @@ export default function ProfilePage() {
         )}
       </section>
 
-      {/* Dev Tools Section */}
-      <section className={styles.menuSection} style={{ marginTop: 12 }}>
-        <h3 className={styles.sectionTitle}>Developer Tools</h3>
-        <button 
-          className={styles.menuItem} 
-          onClick={handleBecomeAdmin}
-          disabled={updatingRole}
-        >
-          <div className={styles.menuLeft}>
-            <ShieldCheck size={18} className={styles.menuIcon} style={{ color: "var(--accent)" }} />
-            <span>{user?.role === "admin" ? "Remove Admin Role" : "Become Admin (Dev Mode)"}</span>
-          </div>
-          <div className={styles.menuRight}>
-            {updatingRole ? <Loader2 size={16} className="pulse" /> : <ChevronRight size={16} />}
-          </div>
-        </button>
-      </section>
-
       {/* Logout options */}
       <section className={styles.menuSection} style={{ marginTop: 12 }}>
         <button

@@ -128,6 +128,36 @@ export default function BusinessProfilePage() {
     setSelectedProduct(null);
   };
 
+  const handleBuyNow = () => {
+    if (!selectedProduct) return;
+
+    // Check if required variants are selected
+    if (selectedProduct.variants && selectedProduct.variants.length > 0) {
+      const selectedNames = selectedVariants.map((v) => v.variantName);
+      const missing = selectedProduct.variants.filter((v: any) => !selectedNames.includes(v.name));
+      if (missing.length > 0) {
+        toast.error(`Please select option for: ${missing[0].name}`);
+        return;
+      }
+    }
+
+    addItem({
+      productId: selectedProduct.id,
+      businessId: business.id,
+      businessName: business.name,
+      name: selectedProduct.name,
+      imageUrl: selectedProduct.images?.[0] || "/images/product-placeholder.jpg",
+      price: selectedProduct.price,
+      quantity: qty,
+      selectedVariants,
+      selectedAddOns,
+      notes: orderNotes,
+    });
+
+    setSelectedProduct(null);
+    router.push("/cart");
+  };
+
   return (
     <div className={styles.container}>
       {/* Cover Banner */}
@@ -146,13 +176,20 @@ export default function BusinessProfilePage() {
       {/* Business Info Info Card details */}
       <div className={styles.profileInfo}>
         <div className={styles.logoWrapper}>
-          <Image
-            src={business.logoUrl || "/images/logo-placeholder.jpg"}
-            alt={business.name}
-            width={72}
-            height={72}
-            className={styles.logoImage}
-          />
+          {business.logoUrl && business.logoUrl !== "" && !business.logoUrl.includes("logo-placeholder") ? (
+            <Image
+              src={business.logoUrl}
+              alt={business.name}
+              width={72}
+              height={72}
+              className={styles.logoImage}
+              unoptimized
+            />
+          ) : (
+            <div className={styles.initialsLogo}>
+              {business.name ? business.name.charAt(0).toUpperCase() : "?"}
+            </div>
+          )}
         </div>
 
         <div className={styles.titleRow}>
@@ -269,9 +306,14 @@ export default function BusinessProfilePage() {
           onClose={() => setSelectedProduct(null)}
           title="Customize Product"
           footer={
-            <Button variant="primary" fullWidth onClick={handleAddToCart}>
-              Add to Cart — {formatCurrency(selectedProduct.price * qty)}
-            </Button>
+            <div style={{ display: "flex", gap: 10, width: "100%" }}>
+              <Button variant="outline" fullWidth onClick={handleAddToCart}>
+                Add to Cart
+              </Button>
+              <Button variant="primary" fullWidth onClick={handleBuyNow}>
+                Buy Now — {formatCurrency(selectedProduct.price * qty)}
+              </Button>
+            </div>
           }
         >
           <div className={styles.modalBody}>
