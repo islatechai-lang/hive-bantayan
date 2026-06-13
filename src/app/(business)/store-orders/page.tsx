@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { collection, query, where, orderBy, onSnapshot, updateDoc, doc, getDoc } from "firebase/firestore";
+import { collection, query, where, orderBy, onSnapshot, updateDoc, doc } from "firebase/firestore";
+import { getDocument } from "@/lib/firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -52,12 +53,10 @@ export default function StoreOrdersPage() {
 
     const fetchStoreCoords = async () => {
       try {
-        const storeRef = doc(db, COLLECTIONS.BUSINESSES, user.businessId);
-        const storeSnap = await getDoc(storeRef);
-        if (storeSnap.exists()) {
-          const data = storeSnap.data();
-          if (data.lat && data.lng) {
-            setStoreCoords({ lat: data.lat, lng: data.lng });
+        const businessDoc: any = await getDocument(COLLECTIONS.BUSINESSES, user.businessId!);
+        if (businessDoc) {
+          if (businessDoc.lat && businessDoc.lng) {
+            setStoreCoords({ lat: businessDoc.lat, lng: businessDoc.lng });
           } else {
             setStoreCoords({ lat: 11.1685, lng: 123.7268 }); // Bantayan Center
           }
