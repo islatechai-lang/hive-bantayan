@@ -1,18 +1,14 @@
 // ============================================================
-// Bantayan Hub — Firebase Storage Helpers
+// Bantayan Hub — Supabase Storage Helpers
 // ============================================================
 
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL,
-  deleteObject,
-} from "firebase/storage";
-import { storage } from "./config";
+import { supabase } from "@/lib/supabase/client";
 import { generateId } from "@/lib/utils/helpers";
 
+const BUCKET_NAME = "bantayan-hive";
+
 /**
- * Upload a file to Firebase Storage
+ * Upload a file to Supabase Storage
  */
 export async function uploadFile(
   path: string,
@@ -20,11 +16,24 @@ export async function uploadFile(
 ): Promise<string> {
   const ext = file.name.split(".").pop() || "jpg";
   const fileName = `${generateId()}.${ext}`;
-  const storageRef = ref(storage, `${path}/${fileName}`);
+  const filePath = `${path}/${fileName}`;
 
-  await uploadBytes(storageRef, file);
-  const downloadUrl = await getDownloadURL(storageRef);
-  return downloadUrl;
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .upload(filePath, file, {
+      cacheControl: "3600",
+      upsert: true,
+    });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from(BUCKET_NAME)
+    .getPublicUrl(filePath);
+
+  return publicUrl;
 }
 
 /**
@@ -43,8 +52,14 @@ export async function uploadMultipleFiles(
  */
 export async function deleteFile(downloadUrl: string): Promise<void> {
   try {
-    const storageRef = ref(storage, downloadUrl);
-    await deleteObject(storageRef);
+    const parts = downloadUrl.split(`/public/${BUCKET_NAME}/`);
+    if (parts.length > 1) {
+      const filePath = decodeURIComponent(parts[1]);
+      const { error } = await supabase.storage
+        .from(BUCKET_NAME)
+        .remove([filePath]);
+      if (error) throw error;
+    }
   } catch (error) {
     console.error("Error deleting file:", error);
   }
