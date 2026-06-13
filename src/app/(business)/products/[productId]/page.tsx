@@ -157,17 +157,17 @@ export default function AddEditProductPage() {
 
   if (fetching) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
-        <Skeleton height={20} width={100} />
-        <Skeleton height={40} style={{ marginTop: 24 }} />
-        <Skeleton height={40} style={{ marginTop: 12 }} />
+      <div className={styles.container}>
+        <Skeleton height={32} width={180} />
+        <Skeleton height={45} style={{ marginTop: 24 }} />
+        <Skeleton height={45} style={{ marginTop: 12 }} />
+        <Skeleton height={45} style={{ marginTop: 12 }} />
       </div>
     );
   }
 
   return (
-    <div className="app-container">
-      <div className={styles.container}>
+    <div className={styles.container}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <button onClick={() => router.back()} style={{ cursor: "pointer", display: "flex", color: "var(--text-light)" }}>
             <ArrowLeft size={20} />
@@ -333,6 +333,5 @@ export default function AddEditProductPage() {
           </Button>
         </form>
       </div>
-    </div>
   );
 }

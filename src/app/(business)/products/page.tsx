@@ -78,9 +78,13 @@ export default function ManageProductsPage() {
 
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
-        <Skeleton height={20} width={120} />
-        <Skeleton height={80} style={{ marginTop: 24 }} />
+      <div className={styles.container}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Skeleton height={32} width={180} />
+          <Skeleton height={32} width={80} />
+        </div>
+        <Skeleton height={80} style={{ marginTop: 12 }} />
+        <Skeleton height={80} style={{ marginTop: 12 }} />
         <Skeleton height={80} style={{ marginTop: 12 }} />
       </div>
     );

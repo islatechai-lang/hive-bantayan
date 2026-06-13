@@ -112,3 +112,79 @@
   color: var(--primary);
   font-weight: 600;
 }
+
+/* Registration Status Banner */
+.statusBanner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  line-height: 1.5;
+  border: 1px solid transparent;
+}
+
+.statusBannerPending {
+  background-color: var(--status-pending-bg);
+  border-color: rgba(255, 184, 0, 0.25);
+  color: var(--status-pending);
+}
+
+.statusBannerPending .bannerTitle {
+  font-weight: 700;
+  color: var(--status-pending);
+  margin-bottom: 2px;
+}
+
+.statusBannerApproved {
+  background-color: var(--status-completed-bg);
+  border-color: rgba(22, 163, 74, 0.25);
+  color: var(--status-completed);
+}
+
+.statusBannerApproved .bannerTitle {
+  font-weight: 700;
+  color: var(--status-completed);
+  margin-bottom: 2px;
+}
+
+.statusBannerRejected {
+  background-color: var(--status-cancelled-bg);
+  border-color: rgba(220, 38, 38, 0.25);
+  color: var(--status-cancelled);
+}
+
+.statusBannerRejected .bannerTitle {
+  font-weight: 700;
+  color: var(--status-cancelled);
+  margin-bottom: 2px;
+}
+
+.statusBannerUnlisted {
+  background-color: var(--bg-hover);
+  border-color: var(--border-color);
+  color: var(--text-muted);
+}
+
+.statusBannerUnlisted .bannerTitle {
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 2px;
+}
+
+.bannerIcon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.bannerContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.bannerText {
+  font-size: 13px;
+  opacity: 0.95;
+}
+

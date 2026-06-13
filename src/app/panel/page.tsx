@@ -8,6 +8,7 @@ import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { formatCurrency, formatRelativeTime } from "@/lib/utils/formatters";
+import { sendPushNotification } from "@/lib/utils/onesignal";
 import { toast } from "react-hot-toast";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
@@ -138,6 +139,20 @@ export default function AdminPanelPage() {
       }
 
       toast.success(`Successfully approved "${business.name}"!`);
+
+      // Trigger push notification to store owner
+      try {
+        if (business.ownerId) {
+          await sendPushNotification(
+            [business.ownerId],
+            "Store Approved! 🎉",
+            `Congratulations! "${business.name}" has been approved and is now live on Hive Bantayan.`,
+            { type: "business_status", status: "approved", businessId: business.id }
+          );
+        }
+      } catch (pushErr) {
+        console.error("Failed to send approval push notification:", pushErr);
+      }
     } catch (err: any) {
       console.error("Error approving store:", err);
       toast.error(err.message || "Failed to approve store");
@@ -153,6 +168,20 @@ export default function AdminPanelPage() {
         isVerified: false,
       });
       toast.success(`Rejected "${business.name}" application`);
+
+      // Trigger push notification to store owner
+      try {
+        if (business.ownerId) {
+          await sendPushNotification(
+            [business.ownerId],
+            "Store Application Update",
+            `Your application for "${business.name}" has been rejected. Please review your details.`,
+            { type: "business_status", status: "rejected", businessId: business.id }
+          );
+        }
+      } catch (pushErr) {
+        console.error("Failed to send rejection push notification:", pushErr);
+      }
     } catch (err: any) {
       console.error("Error rejecting store:", err);
       toast.error(err.message || "Failed to reject store");
@@ -168,6 +197,20 @@ export default function AdminPanelPage() {
         isVerified: false,
       });
       toast.success(`"${business.name}" has been unlisted`);
+
+      // Trigger push notification to store owner
+      try {
+        if (business.ownerId) {
+          await sendPushNotification(
+            [business.ownerId],
+            "Store Status Update ⚠️",
+            `Your store "${business.name}" has been unlisted by the administrator.`,
+            { type: "business_status", status: "unlisted", businessId: business.id }
+          );
+        }
+      } catch (pushErr) {
+        console.error("Failed to send unlisted push notification:", pushErr);
+      }
     } catch (err: any) {
       console.error("Error unlisting store:", err);
       toast.error(err.message || "Failed to unlist store");
@@ -183,6 +226,20 @@ export default function AdminPanelPage() {
         isVerified: true,
       });
       toast.success(`"${business.name}" is now live again`);
+
+      // Trigger push notification to store owner
+      try {
+        if (business.ownerId) {
+          await sendPushNotification(
+            [business.ownerId],
+            "Store Reactivated! ✅",
+            `Your store "${business.name}" has been reactivated and is now live.`,
+            { type: "business_status", status: "approved", businessId: business.id }
+          );
+        }
+      } catch (pushErr) {
+        console.error("Failed to send relist push notification:", pushErr);
+      }
     } catch (err: any) {
       console.error("Error relisting store:", err);
       toast.error(err.message || "Failed to relist store");

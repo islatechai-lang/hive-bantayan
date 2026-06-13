@@ -133,10 +133,11 @@ export default function StoreSettingsPage() {
 
   if (fetching) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
-        <Skeleton height={20} width={120} />
-        <Skeleton height={120} style={{ marginTop: 24 }} />
-        <Skeleton height={40} style={{ marginTop: 12 }} />
+      <div className={styles.container}>
+        <Skeleton height={32} width={180} />
+        <Skeleton height={120} style={{ marginTop: 12 }} />
+        <Skeleton height={45} style={{ marginTop: 12 }} />
+        <Skeleton height={45} style={{ marginTop: 12 }} />
       </div>
     );
   }

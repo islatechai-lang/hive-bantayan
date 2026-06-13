@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, ShoppingBag, DollarSign, Users, AlertCircle, BellRing, ClipboardList } from "lucide-react";
+import { BarChart3, ShoppingBag, DollarSign, Users, AlertCircle, BellRing, ClipboardList, CheckCircle2, XCircle } from "lucide-react";
 import { collection, query, where, orderBy, getDocs, updateDoc, doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
@@ -20,6 +20,7 @@ export default function BusinessDashboardPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const [orders, setOrders] = useState<any[]>([]);
+  const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   // Stats
@@ -32,6 +33,13 @@ export default function BusinessDashboardPage() {
 
   useEffect(() => {
     if (!user?.businessId) return;
+
+    // Listen to business document in real-time
+    const unsubBusiness = onSnapshot(doc(db, COLLECTIONS.BUSINESSES, user.businessId), (docSnap) => {
+      if (docSnap.exists()) {
+        setBusiness({ id: docSnap.id, ...docSnap.data() });
+      }
+    });
 
     // Listen to store orders in real-time
     const q = query(
@@ -91,7 +99,10 @@ export default function BusinessDashboardPage() {
       setLoading(false);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubBusiness();
+      unsubscribe();
+    };
   }, [user]);
 
   const handleUpdateStatus = async (orderId: string, status: string) => {
@@ -164,6 +175,59 @@ export default function BusinessDashboardPage() {
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>Store Dashboard</h1>
+
+      {/* Business Registration Status Banner */}
+      {business && (
+        <>
+          {business.status === "pending" && (
+            <div className={`${styles.statusBanner} ${styles.statusBannerPending}`}>
+              <AlertCircle size={20} className={styles.bannerIcon} />
+              <div className={styles.bannerContent}>
+                <div className={styles.bannerTitle}>Application Pending Approval</div>
+                <div className={styles.bannerText}>
+                  Your registration for <strong>{business.name}</strong> is currently under review. Buyers won't see your store or products on the app until it is approved. In the meantime, you can add products and adjust your settings.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {business.status === "rejected" && (
+            <div className={`${styles.statusBanner} ${styles.statusBannerRejected}`}>
+              <XCircle size={20} className={styles.bannerIcon} />
+              <div className={styles.bannerContent}>
+                <div className={styles.bannerTitle}>Registration Rejected</div>
+                <div className={styles.bannerText}>
+                  Your application has been rejected. Please review your store details or contact support.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {business.status === "unlisted" && (
+            <div className={`${styles.statusBanner} ${styles.statusBannerUnlisted}`}>
+              <AlertCircle size={20} className={styles.bannerIcon} />
+              <div className={styles.bannerContent}>
+                <div className={styles.bannerTitle}>Store Unlisted</div>
+                <div className={styles.bannerText}>
+                  Your store is currently unlisted. Buyers cannot find your store or products.
+                </div>
+              </div>
+            </div>
+          )}
+
+          {business.status === "approved" && (
+            <div className={`${styles.statusBanner} ${styles.statusBannerApproved}`}>
+              <CheckCircle2 size={20} className={styles.bannerIcon} />
+              <div className={styles.bannerContent}>
+                <div className={styles.bannerTitle}>Store Status: Live & Active</div>
+                <div className={styles.bannerText}>
+                  Congratulations! Your business is verified and live on Hive Bantayan.
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Stats Cards Row */}
       <div className={styles.statsGrid}>
