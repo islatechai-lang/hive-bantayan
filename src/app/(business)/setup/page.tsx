@@ -36,10 +36,14 @@ export default function CreateBusinessPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
-  // Pre-fill phone number from authenticated user
+  // Pre-fill phone number from authenticated user (converted to local 09 format)
   React.useEffect(() => {
     if (user?.phone) {
-      setPhone(user.phone);
+      let p = user.phone;
+      if (p.startsWith("+63")) {
+        p = "0" + p.slice(3);
+      }
+      setPhone(p);
     }
   }, [user]);
 
@@ -248,7 +252,7 @@ export default function CreateBusinessPage() {
           </div>
 
           <Input
-            label="Contact / Gcash / WhatsApp Phone"
+            label="Contact No."
             placeholder="e.g. 09171234567"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}

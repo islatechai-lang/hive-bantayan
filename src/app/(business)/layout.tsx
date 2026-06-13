@@ -45,14 +45,7 @@ export default function BusinessShellLayout({
         </div>
 
         <div className={styles.actions}>
-          <button
-            onClick={handleSwitchToBuyer}
-            className={styles.modeBtn}
-            title="Switch to Buyer Mode"
-            aria-label="Switch to Buyer Mode"
-          >
-            <ArrowLeft size={18} />
-          </button>
+          {/* Back button removed per user request */}
         </div>
       </header>
 
