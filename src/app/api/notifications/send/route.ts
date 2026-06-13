@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
-const ONESIGNAL_APP_ID = "803f1ef7-bd66-4bfe-8f6c-acfeb44f7da8";
-const ONESIGNAL_API_KEY = "os_v2_app_qa7r5555mzf75d3mvt7lit35vdvx5kpvkrguuqehvluvbh54xoesj7u76zaawrzzsgz2ytzdxokiedapcnyndv7zq6y3ugscusjyidq";
+const ONESIGNAL_APP_ID = process.env.ONESIGNAL_APP_ID || "803f1ef7-bd66-4bfe-8f6c-acfeb44f7da8";
+const ONESIGNAL_API_KEY = process.env.ONESIGNAL_API_KEY || "os_v2_app_qa7r5555mzf75d3mvt7lit35vdvx5kpvkrguuqehvluvbh54xoesj7u76zaawrzzsgz2ytzdxokiedapcnyndv7zq6y3ugscusjyidq";
 
 export async function POST(request: Request) {
   try {

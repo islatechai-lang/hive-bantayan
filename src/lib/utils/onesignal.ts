@@ -2,8 +2,7 @@
 // Hive Bantayan — OneSignal & Median Push Notifications Helper
 // ============================================================
 
-const ONESIGNAL_APP_ID = "803f1ef7-bd66-4bfe-8f6c-acfeb44f7da8";
-const ONESIGNAL_API_KEY = "os_v2_app_qa7r5555mzf75d3mvt7lit35vdvx5kpvkrguuqehvluvbh54xoesj7u76zaawrzzsgz2ytzdxokiedapcnyndv7zq6y3ugscusjyidq";
+const ONESIGNAL_APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || "803f1ef7-bd66-4bfe-8f6c-acfeb44f7da8";
 
 /**
  * Register the logged-in user's Firebase UID as their OneSignal external user ID.
