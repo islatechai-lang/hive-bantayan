@@ -92,7 +92,7 @@ export const sendPushNotification = async (
     });
 
     const result = await response.json();
-    console.log("OneSignal: Server proxy response:", result);
+    console.log("OneSignal: Server proxy response:", JSON.stringify(result));
     return result;
   } catch (error) {
     console.error("OneSignal: Failed to send push notification:", error);

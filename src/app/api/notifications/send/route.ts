@@ -40,7 +40,8 @@ export async function POST(request: Request) {
     });
 
     const result = await response.json();
-    console.log("OneSignal Server: Delivery response:", result);
+    console.log(`OneSignal Server: Status code from OneSignal: ${response.status}`);
+    console.log("OneSignal Server: Delivery response:", JSON.stringify(result));
 
     return NextResponse.json(result);
   } catch (error: any) {
