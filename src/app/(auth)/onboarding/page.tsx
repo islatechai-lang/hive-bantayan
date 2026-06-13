@@ -17,6 +17,7 @@ export default function OnboardingPage() {
   const { user, isAuthenticated, setUser } = useAuthStore();
   const { setMode } = useUIStore();
   const [selectedRole, setSelectedRole] = useState<"buyer" | "business">("buyer");
+  const [displayName, setDisplayName] = useState("");
   const [loading, setLoading] = useState(false);
 
   // If already has business or has completed onboarding, redirect
@@ -31,8 +32,20 @@ export default function OnboardingPage() {
     }
   }, [isAuthenticated, user, router, setMode]);
 
+  // Pre-fill display name if it's set and not a default phone placeholder
+  useEffect(() => {
+    if (user?.displayName && !user.displayName.startsWith("User (+")) {
+      setDisplayName(user.displayName);
+    }
+  }, [user]);
+
   const handleContinue = async () => {
     if (!user) return;
+    const trimmedName = displayName.trim();
+    if (!trimmedName) {
+      toast.error("Please enter your name to continue");
+      return;
+    }
     setLoading(true);
 
     try {
@@ -40,8 +53,9 @@ export default function OnboardingPage() {
         // User wants to be a buyer
         await updateDocument(COLLECTIONS.USERS, user.id, {
           role: "buyer",
+          displayName: trimmedName,
         });
-        setUser({ ...user, role: "buyer" });
+        setUser({ ...user, role: "buyer", displayName: trimmedName });
         setMode("buyer");
         toast.success("Ready to browse Hive Bantayan!");
         router.push("/home");
@@ -49,14 +63,15 @@ export default function OnboardingPage() {
         // User wants to register a business
         await updateDocument(COLLECTIONS.USERS, user.id, {
           role: "business",
+          displayName: trimmedName,
         });
-        setUser({ ...user, role: "business" });
+        setUser({ ...user, role: "business", displayName: trimmedName });
         setMode("business");
         router.push("/setup");
       }
     } catch (error) {
       console.error("Onboarding error:", error);
-      toast.error("Failed to update account role");
+      toast.error("Failed to update account details");
     } finally {
       setLoading(false);
     }
@@ -68,8 +83,20 @@ export default function OnboardingPage() {
         <div className={styles.intro}>
           <h1 className={styles.title}>Choose Your Experience</h1>
           <p className={styles.subtitle}>
-            Hive Bantayan supports both roles. You can browse as a buyer or start your own local storefront.
+            Hive Bantayan supports both roles. Please enter your name and select how you want to start.
           </p>
+        </div>
+
+        <div className={styles.inputSection}>
+          <label className={styles.inputLabel}>Your Name</label>
+          <input
+            type="text"
+            placeholder="Juan Dela Cruz"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            disabled={loading}
+            className={styles.textInput}
+          />
         </div>
 
         <div className={styles.options}>

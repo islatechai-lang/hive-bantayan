@@ -36,6 +36,13 @@ export default function CreateBusinessPage() {
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
+  // Pre-fill phone number from authenticated user
+  React.useEffect(() => {
+    if (user?.phone) {
+      setPhone(user.phone);
+    }
+  }, [user]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;

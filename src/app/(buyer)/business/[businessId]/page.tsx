@@ -235,9 +235,9 @@ export default function BusinessProfilePage() {
             fullWidth
             leftIcon={<Phone size={16} />}
             className={styles.whatsappBtn}
-            onClick={() => window.open(whatsappUrl, "_blank")}
+            onClick={() => window.open(`tel:${business.phone}`, "_self")}
           >
-            WhatsApp
+            Call
           </Button>
         </div>
       </div>

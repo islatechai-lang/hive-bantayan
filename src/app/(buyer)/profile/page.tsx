@@ -87,7 +87,7 @@ export default function ProfilePage() {
         </div>
         <div className={styles.userInfo}>
           <h2 className={styles.name}>{user?.displayName || "Guest User"}</h2>
-          <span className={styles.email}>{user?.email || "No email linked"}</span>
+          <span className={styles.email}>{user?.phone || "No phone number linked"}</span>
         </div>
       </div>
 

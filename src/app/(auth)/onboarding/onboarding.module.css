@@ -92,3 +92,34 @@
 .action {
   margin-top: 32px;
 }
+
+/* Onboarding Name Input Styles */
+.inputSection {
+  margin-bottom: 24px;
+  text-align: left;
+}
+
+.inputLabel {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.textInput {
+  width: 100%;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  padding: 12px 16px;
+  font-size: 15px;
+  color: var(--text-main);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.textInput:focus {
+  border-color: var(--primary);
+}
+
