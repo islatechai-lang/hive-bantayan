@@ -14,6 +14,12 @@ export async function POST(request: Request) {
 
     console.log(`OneSignal Server: Sending push to users: ${targetUserIds.join(", ")}`);
 
+    if (!process.env.ONESIGNAL_API_KEY) {
+      console.warn("OneSignal Server Warning: process.env.ONESIGNAL_API_KEY is NOT defined on the server! Falling back to the default code placeholder key.");
+    } else {
+      console.log(`OneSignal Server Info: Successfully loaded API Key from server environment (starts with: ${process.env.ONESIGNAL_API_KEY.substring(0, 15)}...)`);
+    }
+
     const response = await fetch("https://api.onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
