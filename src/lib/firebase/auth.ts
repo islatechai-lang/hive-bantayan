@@ -67,10 +67,10 @@ export async function getCurrentUserDoc(): Promise<User | null> {
   if (!userSnap.exists()) {
     // Auto-create document if it doesn't exist (e.g. if signup failed earlier due to rules)
     const newUser: Omit<User, "id"> = {
-      displayName: firebaseUser.displayName || "User",
+      displayName: firebaseUser.displayName || (firebaseUser.phoneNumber ? `User (${firebaseUser.phoneNumber})` : "User"),
       email: firebaseUser.email || "",
       photoUrl: firebaseUser.photoURL || "",
-      phone: "",
+      phone: firebaseUser.phoneNumber || "",
       role: "buyer",
       hasBusiness: false,
       businessId: null,

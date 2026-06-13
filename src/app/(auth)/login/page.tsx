@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Lock, Loader2 } from "lucide-react";
-import { signInWithGoogle } from "@/lib/firebase/auth";
+import { ArrowLeft, Lock, Loader2, Phone, Check } from "lucide-react";
+import { RecaptchaVerifier, signInWithPhoneNumber, type ConfirmationResult } from "firebase/auth";
+import { auth } from "@/lib/firebase/config";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { toast } from "react-hot-toast";
 import Image from "next/image";
@@ -13,20 +14,106 @@ import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [step, setStep] = useState<"phone" | "code">("phone");
   const [loading, setLoading] = useState(false);
-  const { setUser, setFirebaseUser } = useAuthStore();
+  const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
+  
+  const recaptchaVerifierRef = useRef<RecaptchaVerifier | null>(null);
 
-  const handleGoogleLogin = async () => {
+  useEffect(() => {
+    if (typeof window === "undefined" || recaptchaVerifierRef.current) return;
+
+    try {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, "recaptcha-container", {
+        size: "invisible",
+        callback: () => {
+          // reCAPTCHA solved
+        },
+        "expired-callback": () => {
+          toast.error("reCAPTCHA expired. Please try again.");
+        }
+      });
+    } catch (err) {
+      console.error("Failed to initialize RecaptchaVerifier:", err);
+    }
+
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+    };
+  }, []);
+
+  const handleSendCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!phoneNumber) {
+      toast.error("Please enter a valid phone number");
+      return;
+    }
+
+    // Standardize phone number (+63 prefix for Philippines)
+    let formattedPhone = phoneNumber.trim();
+    if (!formattedPhone.startsWith("+")) {
+      if (formattedPhone.startsWith("0")) {
+        formattedPhone = "+63" + formattedPhone.slice(1);
+      } else {
+        formattedPhone = "+63" + formattedPhone;
+      }
+    }
+
     setLoading(true);
     try {
-      const firebaseUser = await signInWithGoogle();
-      setFirebaseUser(firebaseUser);
+      const appVerifier = recaptchaVerifierRef.current;
+      if (!appVerifier) {
+        throw new Error("Recaptcha verifier is not initialized");
+      }
+
+      const confirmation = await signInWithPhoneNumber(auth, formattedPhone, appVerifier);
+      setConfirmationResult(confirmation);
+      setStep("code");
+      toast.success(`Verification code sent to ${formattedPhone}`);
+    } catch (error: any) {
+      console.error("SMS Code Send failed:", error);
+      toast.error(error.message || "Failed to send verification code. Check your phone number.");
+      if (typeof window !== "undefined" && (window as any).grecaptcha && recaptchaVerifierRef.current) {
+        try {
+          (window as any).grecaptcha.reset();
+        } catch (resetErr) {
+          console.error("Error resetting recaptcha:", resetErr);
+        }
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationCode || verificationCode.length < 6) {
+      toast.error("Please enter the 6-digit verification code");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      if (!confirmationResult) {
+        throw new Error("No pending confirmation found");
+      }
+
+      const result = await confirmationResult.confirm(verificationCode);
+      const firebaseUser = result.user;
       
+      // Update state
+      useAuthStore.getState().setFirebaseUser(firebaseUser);
+
       toast.success("Welcome to Hive Bantayan!");
       router.push("/onboarding");
     } catch (error: any) {
-      console.error("Login failed:", error);
-      toast.error(error.message || "Authentication failed");
+      console.error("Verification failed:", error);
+      toast.error(error.message || "Incorrect verification code. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -61,45 +148,90 @@ export default function LoginPage() {
             <div className={styles.infoArea}>
               <h1 className={styles.title}>Welcome to the Island Hub</h1>
               <p className={styles.subtitle}>
-                Sign in with your Google account to start browsing local shops or managing your own business.
+                {step === "phone" 
+                  ? "Enter your phone number to sign up or log in. We will send you a one-time verification code."
+                  : "We sent a 6-digit code to your phone number. Enter it below to confirm your account."
+                }
               </p>
             </div>
 
-            <button
-              onClick={handleGoogleLogin}
-              disabled={loading}
-              className={styles.googleBtn}
-            >
-              {loading ? (
-                <Loader2 size={20} className="pulse" />
-              ) : (
-                <div className={styles.googleIcon}>
-                  <svg width="20" height="20" viewBox="0 0 24 24">
-                    <path
-                      fill="#EA4335"
-                      d="M12 5.04c1.62 0 3.06.56 4.21 1.66l3.15-3.15C17.45 1.8 14.96 1 12 1 7.35 1 3.37 3.67 1.39 7.56l3.82 2.96c.9-2.7 3.42-4.48 6.79-4.48z"
+            <div id="recaptcha-container" className={styles.recaptchaContainer}></div>
+
+            {step === "phone" ? (
+              <form onSubmit={handleSendCode} className={styles.phoneForm}>
+                <div>
+                  <label className={styles.inputLabel}>Mobile Phone Number</label>
+                  <div className={styles.phoneInputWrapper}>
+                    <span className={styles.countryCode}>+63</span>
+                    <input
+                      type="tel"
+                      placeholder="912 345 6789"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value.replace(/\D/g, ""))}
+                      disabled={loading}
+                      className={styles.phoneInput}
+                      maxLength={10}
+                      autoFocus
                     />
-                    <path
-                      fill="#4285F4"
-                      d="M23.49 12.27c0-.81-.07-1.59-.2-2.36H12v4.51h6.46c-.28 1.48-1.12 2.73-2.38 3.58l3.7 2.87c2.16-1.99 3.41-4.92 3.41-8.6z"
-                    />
-                    <path
-                      fill="#FBBC05"
-                      d="M5.21 14.52c-.23-.69-.36-1.42-.36-2.18s.13-1.49.36-2.18L1.39 7.56C.5 9.35 0 11.34 0 13.43s.5 4.08 1.39 5.87l3.82-2.96z"
-                    />
-                    <path
-                      fill="#34A853"
-                      d="M12 23c3.24 0 5.97-1.07 7.96-2.92l-3.7-2.87c-1.03.69-2.35 1.11-3.95 1.11-3.37 0-6.22-2.28-7.24-5.37L1.23 15.9c1.98 3.93 5.98 6.6 10.77 6.6z"
-                    />
-                  </svg>
+                  </div>
                 </div>
-              )}
-              <span>{loading ? "Signing in..." : "Continue with Google"}</span>
-            </button>
+
+                <button
+                  type="submit"
+                  disabled={loading || phoneNumber.length < 10}
+                  className={styles.submitBtn}
+                >
+                  {loading ? (
+                    <Loader2 size={20} className="pulse" />
+                  ) : (
+                    <Phone size={18} />
+                  )}
+                  <span>{loading ? "Sending..." : "Send Verification SMS"}</span>
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className={styles.phoneForm}>
+                <div>
+                  <label className={styles.inputLabel}>Enter 6-Digit Code</label>
+                  <input
+                    type="text"
+                    placeholder="••••••"
+                    value={verificationCode}
+                    onChange={(e) => setVerificationCode(e.target.value.replace(/\D/g, ""))}
+                    disabled={loading}
+                    className={styles.codeInput}
+                    maxLength={6}
+                    autoFocus
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || verificationCode.length < 6}
+                  className={styles.submitBtn}
+                >
+                  {loading ? (
+                    <Loader2 size={20} className="pulse" />
+                  ) : (
+                    <Check size={18} />
+                  )}
+                  <span>{loading ? "Verifying..." : "Confirm & Continue"}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setStep("phone")}
+                  disabled={loading}
+                  className={styles.changePhoneBtn}
+                >
+                  Change phone number
+                </button>
+              </form>
+            )}
 
             <div className={styles.securityNote}>
               <Lock size={14} className={styles.lockIcon} />
-              <span>Secure, passwordless authentication</span>
+              <span>Secure, SMS-based verification</span>
             </div>
 
             <p className={styles.footer}>
