@@ -14,11 +14,11 @@ export async function POST(request: Request) {
 
     console.log(`OneSignal Server: Sending push to users: ${targetUserIds.join(", ")}`);
 
-    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+    const response = await fetch("https://api.onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${ONESIGNAL_API_KEY}`,
+        "Authorization": `Key ${ONESIGNAL_API_KEY}`,
       },
       body: JSON.stringify({
         app_id: ONESIGNAL_APP_ID,
