@@ -12,11 +12,27 @@ export const registerOneSignalUser = (userId: string) => {
   if (typeof window === "undefined") return;
   try {
     const bridge = (window as any).median || (window as any).gonative;
-    if (bridge?.onesignal?.login) {
+    if (!bridge) {
+      console.log("OneSignal: Median/GoNative bridge not found");
+      return;
+    }
+
+    // Register user ID - try modern login() first
+    if (bridge.onesignal?.login) {
       bridge.onesignal.login(userId);
-      console.log("OneSignal: Associated user ID via Median bridge", userId);
+      console.log("OneSignal: Associated user ID via modern login()", userId);
+    } else if (bridge.onesignal?.externalUserId?.set) {
+      // Try legacy SDK v4
+      bridge.onesignal.externalUserId.set({ externalId: userId });
+      console.log("OneSignal: Associated user ID via legacy externalUserId.set()", userId);
     } else {
-      console.log("OneSignal: Median bridge onesignal.login is not available (not running inside native wrapper)");
+      console.log("OneSignal: Neither modern login() nor legacy externalUserId.set() is available on the bridge");
+    }
+
+    // Automatically prompt / register for push notifications permission if available
+    if (bridge.onesignal?.register) {
+      bridge.onesignal.register();
+      console.log("OneSignal: Triggered register() prompt via bridge");
     }
   } catch (error) {
     console.error("OneSignal: Error in registerOneSignalUser:", error);
@@ -30,9 +46,16 @@ export const logoutOneSignalUser = () => {
   if (typeof window === "undefined") return;
   try {
     const bridge = (window as any).median || (window as any).gonative;
-    if (bridge?.onesignal?.logout) {
+    if (!bridge) return;
+
+    // Try modern SDK v5+
+    if (bridge.onesignal?.logout) {
       bridge.onesignal.logout();
-      console.log("OneSignal: Cleared external user association on logout");
+      console.log("OneSignal: Logged out via modern logout()");
+    } else if (bridge.onesignal?.externalUserId?.remove) {
+      // Try legacy SDK v4
+      bridge.onesignal.externalUserId.remove();
+      console.log("OneSignal: Logged out via legacy externalUserId.remove()");
     }
   } catch (error) {
     console.error("OneSignal: Error in logoutOneSignalUser:", error);
