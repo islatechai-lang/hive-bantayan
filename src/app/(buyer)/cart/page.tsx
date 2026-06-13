@@ -27,12 +27,33 @@ export default function CartPage() {
   const subtotal = getCartSubtotal();
   const total = subtotal + deliveryFee;
 
-  const [addressText, setAddressText] = useState("Bantayan Island, Cebu");
+  const [addressText, setAddressText] = useState("");
   const [landmark, setLandmark] = useState("");
   const [addressNotes, setAddressNotes] = useState("");
   const [coordinates, setCoordinates] = useState({ lat: 11.1685, lng: 123.7268 });
   const [gpsStatus, setGpsStatus] = useState<"idle" | "detecting" | "success" | "failed">("idle");
 
+  const [savedLocations, setSavedLocations] = useState<any[]>([]);
+  const [selectedLocationId, setSelectedLocationId] = useState<string>("");
+  const [showSaveModal, setShowSaveModal] = useState(false);
+  const [saveLabel, setSaveLabel] = useState("");
+
+  // Load saved locations from localStorage on mount
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("hive_saved_locations");
+      if (stored) {
+        try {
+          const parsed = JSON.parse(stored);
+          setSavedLocations(parsed);
+        } catch (e) {
+          console.error("Failed to parse saved locations:", e);
+        }
+      }
+    }
+  }, []);
+
+  // Silently request GPS on load as a helper
   React.useEffect(() => {
     if (typeof window !== "undefined" && navigator.geolocation) {
       setGpsStatus("detecting");
@@ -43,17 +64,62 @@ export default function CartPage() {
             lng: position.coords.longitude,
           });
           setGpsStatus("success");
+          setAddressText("📍 GPS Location (Acquired)");
         },
         (error) => {
-          console.error("Error getting location:", error);
+          console.error("Initial GPS error:", error);
           setGpsStatus("failed");
         },
-        { enableHighAccuracy: true, timeout: 10000 }
+        { enableHighAccuracy: true, timeout: 8000 }
       );
     }
   }, []);
 
-  const handlePlaceOrder = async () => {
+  const handleGetLocation = () => {
+    if (typeof window === "undefined" || !navigator.geolocation) {
+      toast.error("Geolocation is not supported by your device");
+      return;
+    }
+    setGpsStatus("detecting");
+    const loaderId = toast.loading("Acquiring GPS coordinates...");
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        setCoordinates({ lat, lng });
+        setGpsStatus("success");
+        setAddressText("📍 GPS Location (Acquired)");
+        toast.success("GPS Location set!", { id: loaderId });
+      },
+      (error) => {
+        console.error("GPS error:", error);
+        setGpsStatus("failed");
+        toast.error("Failed to acquire GPS. Used default center.", { id: loaderId });
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
+  const handleSelectSavedLocation = (id: string) => {
+    setSelectedLocationId(id);
+    if (id === "") {
+      setAddressText("");
+      setLandmark("");
+      setAddressNotes("");
+      setCoordinates({ lat: 11.1685, lng: 123.7268 });
+      return;
+    }
+    const loc = savedLocations.find((l) => l.id === id);
+    if (loc) {
+      setAddressText(loc.address);
+      setLandmark(loc.landmark || "");
+      setAddressNotes(loc.notes || "");
+      setCoordinates({ lat: loc.lat, lng: loc.lng });
+      toast.success(`Loaded location: ${loc.label}`);
+    }
+  };
+
+  const handlePlaceOrder = () => {
     if (!user) {
       toast.error("Please sign in to place orders");
       router.push("/login");
@@ -62,11 +128,25 @@ export default function CartPage() {
 
     if (items.length === 0) return;
 
-    if (!addressText.trim()) {
-      toast.error("Please enter a delivery address");
+    if (!addressText.trim() || addressText === "Bantayan Island, Cebu") {
+      toast.error("Please enter a specific delivery address");
       return;
     }
 
+    // Ask to save location if not already in local list
+    const isAlreadySaved = savedLocations.some(
+      (l) => l.address.toLowerCase() === addressText.toLowerCase() && l.landmark.toLowerCase() === landmark.toLowerCase()
+    );
+
+    if (!isAlreadySaved && !selectedLocationId) {
+      setShowSaveModal(true);
+    } else {
+      submitOrder(false);
+    }
+  };
+
+  const submitOrder = async (shouldSave = false, label = "Home") => {
+    setShowSaveModal(false);
     setLoading(true);
 
     try {
@@ -86,8 +166,10 @@ export default function CartPage() {
       }));
 
       const deliveryAddress = {
-        id: "custom-address",
-        label: "Delivery Address",
+        id: selectedLocationId || "custom-address",
+        label: selectedLocationId
+          ? (savedLocations.find((l) => l.id === selectedLocationId)?.label || "Saved Address")
+          : "Delivery Address",
         address: addressText,
         lat: coordinates.lat,
         lng: coordinates.lng,
@@ -100,7 +182,7 @@ export default function CartPage() {
         orderNumber,
         customerId: user.id,
         customerName: user.displayName,
-        customerPhone: user.phone || "09171234567", // Fallback if phone not updated
+        customerPhone: user.phone || "09171234567",
         businessId: firstItem.businessId,
         businessName: firstItem.businessName,
         items: orderItems,
@@ -126,6 +208,22 @@ export default function CartPage() {
 
       const orderId = await addDocument(COLLECTIONS.ORDERS, newOrder);
 
+      if (shouldSave) {
+        const newLoc = {
+          id: Date.now().toString(),
+          label: label.trim() || "Address",
+          address: addressText,
+          lat: coordinates.lat,
+          lng: coordinates.lng,
+          landmark,
+          notes: addressNotes,
+        };
+        const updated = [...savedLocations, newLoc];
+        localStorage.setItem("hive_saved_locations", JSON.stringify(updated));
+        setSavedLocations(updated);
+        toast.success("Location saved for next time!");
+      }
+
       // Fetch store owner and notify via OneSignal
       try {
         const businessDoc: any = await getDocument(COLLECTIONS.BUSINESSES, firstItem.businessId);
@@ -143,8 +241,6 @@ export default function CartPage() {
 
       toast.success("Order placed successfully!");
       clearCart();
-      
-      // Redirect to Order Tracking screen
       router.push(`/orders/${orderId}`);
     } catch (err: any) {
       console.error("Order submission error:", err);
@@ -279,12 +375,54 @@ export default function CartPage() {
               fontWeight: 600
             }}
           >
-            {gpsStatus === "success" ? "📍 GPS Acquired" : gpsStatus === "detecting" ? "⚡ Fetching GPS..." : "⚠️ GPS Off (Using Default)"}
+            {gpsStatus === "success" ? "📍 GPS Acquired" : gpsStatus === "detecting" ? "⚡ Fetching GPS..." : "⚠️ GPS Off"}
           </span>
         </div>
+
         <div className={styles.addressForm}>
+          {/* Saved Locations Selector */}
+          {savedLocations.length > 0 && (
+            <div className={styles.inputGroup} style={{ marginBottom: 4 }}>
+              <label className={styles.inputLabel}>Select Saved Location</label>
+              <select
+                value={selectedLocationId}
+                onChange={(e) => handleSelectSavedLocation(e.target.value)}
+                className={styles.inputField}
+                style={{ padding: "10px 12px", border: "1px solid var(--border-color)", borderRadius: "8px", cursor: "pointer" }}
+              >
+                <option value="">-- Choose a Saved Location (Optional) --</option>
+                {savedLocations.map((loc) => (
+                  <option key={loc.id} value={loc.id}>
+                    📍 {loc.label} ({loc.address})
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>Delivery Address / Street / Barangay</label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <label className={styles.inputLabel}>Delivery Address / Street / Barangay</label>
+              <button
+                type="button"
+                onClick={handleGetLocation}
+                style={{
+                  fontSize: 11,
+                  color: "var(--primary)",
+                  background: "none",
+                  border: "none",
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                }}
+              >
+                📍 Locate Me
+              </button>
+            </div>
             <input
               type="text"
               value={addressText}
@@ -294,24 +432,26 @@ export default function CartPage() {
               required
             />
           </div>
+
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>Landmark / House Description</label>
+            <label className={styles.inputLabel}>Landmark / House Description (Optional)</label>
             <input
               type="text"
               value={landmark}
               onChange={(e) => setLandmark(e.target.value)}
               className={styles.inputField}
-              placeholder="e.g. Near Bantayan Plaza, red gate"
+              placeholder="e.g. Near plaza, red gate (Optional)"
             />
           </div>
+
           <div className={styles.inputGroup}>
-            <label className={styles.inputLabel}>Delivery Instructions (for rider)</label>
+            <label className={styles.inputLabel}>Delivery Instructions (Optional)</label>
             <input
               type="text"
               value={addressNotes}
               onChange={(e) => setAddressNotes(e.target.value)}
               className={styles.inputField}
-              placeholder="e.g. Leave with guard / call upon arrival"
+              placeholder="e.g. Call upon arrival (Optional)"
             />
           </div>
         </div>
@@ -352,6 +492,75 @@ export default function CartPage() {
       >
         Place Order
       </Button>
+
+      {/* Save Location Popup Modal */}
+      {showSaveModal && (
+        <div style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.4)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 9999,
+          padding: 20
+        }}>
+          <div style={{
+            backgroundColor: "var(--bg-surface)",
+            borderRadius: "12px",
+            padding: 24,
+            width: "100%",
+            maxWidth: 360,
+            boxShadow: "var(--shadow-lg)",
+            border: "1px solid var(--border-color)",
+            display: "flex",
+            flexDirection: "column",
+            gap: 16
+          }}>
+            <h3 style={{ fontSize: 16, fontWeight: 800, color: "var(--text-main)", margin: 0 }}>Save location details?</h3>
+            <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0, lineHeight: 1.4 }}>
+              Would you like to save this delivery address for your next orders?
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <label style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase" }}>Label Name</label>
+              <input
+                type="text"
+                value={saveLabel}
+                onChange={(e) => setSaveLabel(e.target.value)}
+                placeholder="e.g. Home, Work, Resort"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  fontSize: 13,
+                  border: "1px solid var(--border-color)",
+                  borderRadius: "8px",
+                  backgroundColor: "var(--bg-input)",
+                  color: "var(--text-main)"
+                }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+              <Button
+                variant="outline"
+                fullWidth
+                onClick={() => submitOrder(false)}
+              >
+                Skip
+              </Button>
+              <Button
+                variant="primary"
+                fullWidth
+                onClick={() => submitOrder(true, saveLabel || "Home")}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

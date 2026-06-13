@@ -188,3 +188,138 @@
   opacity: 0.95;
 }
 
+/* Redesigned Card Components */
+.customerSection {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-color-light, #f1f5f9);
+  width: 100%;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--primary);
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.customerInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.customerName {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.customerPhone {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.customerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionIconBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.actionIconBtn:hover {
+  background-color: var(--bg-hover);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.productThumbnails {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+  width: 100%;
+}
+
+.thumbnailRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.thumbnailWrapper {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.thumbnailImage {
+  object-fit: cover;
+}
+
+.productText {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.addressBox {
+  font-size: 12.5px;
+  background-color: var(--bg-input);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border: 1px solid var(--border-color-light, #f1f5f9);
+  width: 100%;
+}
+
+.addressHeader {
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.addressDetail {
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.addressNotes {
+  font-size: 11.5px;
+  color: var(--text-light);
+  font-style: italic;
+}
+
+

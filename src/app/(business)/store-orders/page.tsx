@@ -35,12 +35,16 @@ export default function StoreOrdersPage() {
 
     const q = query(
       collection(db, COLLECTIONS.ORDERS),
-      where("businessId", "==", user.businessId),
-      orderBy("createdAt", "desc")
+      where("businessId", "==", user.businessId)
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const items = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+      items.sort((a: any, b: any) => {
+        const timeA = a.createdAt?.seconds || 0;
+        const timeB = b.createdAt?.seconds || 0;
+        return timeB - timeA;
+      });
       setOrders(items);
       setLoading(false);
     });

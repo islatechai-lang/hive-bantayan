@@ -41,6 +41,42 @@ export default function OrderTrackingPage() {
   }, [orderId]);
 
   useEffect(() => {
+    if (!orderId || !order || order.status !== "out_for_delivery") return;
+    if (typeof window === "undefined" || !navigator.geolocation) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        try {
+          const oldLat = order.deliveryAddress?.lat;
+          const oldLng = order.deliveryAddress?.lng;
+          const dist = Math.abs(lat - (oldLat || 0)) + Math.abs(lng - (oldLng || 0));
+          if (dist > 0.0001) {
+            const { doc, updateDoc } = await import("firebase/firestore");
+            const { db } = await import("@/lib/firebase/config");
+            const orderRef = doc(db, COLLECTIONS.ORDERS, orderId);
+            await updateDoc(orderRef, {
+              "deliveryAddress.lat": lat,
+              "deliveryAddress.lng": lng,
+            });
+          }
+        } catch (err) {
+          console.error("Failed to update live coordinate:", err);
+        }
+      },
+      (err) => {
+        console.error("Error watching geolocation:", err);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+    };
+  }, [orderId, order?.status, order?.deliveryAddress?.lat, order?.deliveryAddress?.lng]);
+
+  useEffect(() => {
     if (!order || !order.businessId) return;
 
     const fetchStoreCoords = async () => {

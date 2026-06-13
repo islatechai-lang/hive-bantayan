@@ -33,14 +33,21 @@ export default function OrderHistoryPage() {
       try {
         const q = query(
           collection(db, COLLECTIONS.ORDERS),
-          where("customerId", "==", userId),
-          orderBy("createdAt", "desc")
+          where("customerId", "==", userId)
         );
         const snap = await getDocs(q);
         const items = snap.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+        
+        // Sort in memory to avoid index requirement
+        items.sort((a: any, b: any) => {
+          const timeA = a.createdAt?.seconds || 0;
+          const timeB = b.createdAt?.seconds || 0;
+          return timeB - timeA;
+        });
+
         setOrders(items);
       } catch (error) {
         console.error("Error loading order history:", error);
