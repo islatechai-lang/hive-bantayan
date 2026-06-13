@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Store, Upload, CheckCircle2, ArrowRight, X, ImagePlus } from "lucide-react";
 import { addDocument, updateDocument } from "@/lib/firebase/firestore";
-import { uploadBusinessLogo } from "@/lib/firebase/storage";
+import { uploadBusinessLogo, uploadBusinessCover } from "@/lib/firebase/storage";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
@@ -35,6 +35,9 @@ export default function CreateBusinessPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
 
   // Pre-fill phone number from authenticated user (converted to local 09 format)
   React.useEffect(() => {
@@ -69,13 +72,21 @@ export default function CreateBusinessPage() {
         toast.dismiss("logo-upload");
       }
 
+      // Upload cover banner if provided
+      let coverUrl = "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80";
+      if (coverFile) {
+        toast.loading("Uploading cover banner...", { id: "cover-upload" });
+        coverUrl = await uploadBusinessCover(user.id, coverFile);
+        toast.dismiss("cover-upload");
+      }
+
       const newBusiness = {
         ownerId: user.id,
         name: name.trim(),
         slug,
         description: description.trim(),
         logoUrl,
-        coverUrl: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80", // Standard premium mockup cover
+        coverUrl,
         category,
         phone: phone.trim(),
         whatsapp: phone.trim(),
@@ -230,6 +241,60 @@ export default function CreateBusinessPage() {
                 <ImagePlus size={28} className={styles.uploadIcon} />
                 <span className={styles.uploadText}>Tap to upload logo</span>
                 <span className={styles.uploadHint}>PNG, JPG up to 5MB</span>
+              </div>
+            )}
+          </div>
+
+          {/* Cover Banner Upload */}
+          <div className={styles.imageUploads}>
+            <label className={styles.label}>Cover Banner (Optional)</label>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              style={{ display: "none" }}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  if (file.size > 5 * 1024 * 1024) {
+                    toast.error("Cover image must be under 5MB");
+                    return;
+                  }
+                  setCoverFile(file);
+                  setCoverPreview(URL.createObjectURL(file));
+                }
+              }}
+            />
+            {coverPreview ? (
+              <div className={styles.previewWrapper} style={{ width: "100%", height: 140 }}>
+                <Image
+                  src={coverPreview}
+                  alt="Cover preview"
+                  fill
+                  style={{ objectFit: "cover" }}
+                  className={styles.previewImage}
+                  unoptimized
+                />
+                <button
+                  type="button"
+                  className={styles.removeBtn}
+                  onClick={() => {
+                    setCoverFile(null);
+                    setCoverPreview(null);
+                    if (coverInputRef.current) coverInputRef.current.value = "";
+                  }}
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <div
+                className={styles.uploadBox}
+                onClick={() => coverInputRef.current?.click()}
+              >
+                <Upload size={28} className={styles.uploadIcon} />
+                <span className={styles.uploadText}>Tap to upload cover banner</span>
+                <span className={styles.uploadHint}>Recommended: 600×200, PNG/JPG up to 5MB</span>
               </div>
             )}
           </div>

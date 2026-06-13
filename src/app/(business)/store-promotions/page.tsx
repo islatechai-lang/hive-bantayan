@@ -12,6 +12,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
+import { sendPushNotification } from "@/lib/utils/onesignal";
 import styles from "./store-promotions.module.css";
 
 export default function StorePromotionsPage() {
@@ -63,6 +64,23 @@ export default function StorePromotionsPage() {
       });
       toast.success("Promo code created!");
       setShowForm(false);
+      
+      // Broadcast promo push notification
+      try {
+        await sendPushNotification(
+          ["all"],
+          `New Promo from ${user?.displayName || "a store"}! 🏷️`,
+          `Use code ${formData.code.toUpperCase()} to get ${formData.discountPercent}% OFF. ${formData.description || ""}`,
+          { 
+            type: "promotion", 
+            code: formData.code.toUpperCase(),
+            targetUrl: "https://hive-bantayan.vercel.app/store-promotions"
+          }
+        );
+      } catch (pushErr) {
+        console.error("Promo push notification broadcast failed:", pushErr);
+      }
+
       setFormData({ code: "", discountPercent: "", description: "", expiresAt: "" });
       fetchPromos();
     } catch (error) {

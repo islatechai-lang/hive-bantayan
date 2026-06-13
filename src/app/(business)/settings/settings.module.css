@@ -61,6 +61,88 @@
   color: var(--text-light);
 }
 
+/* Image Uploads */
+.imageUploads {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.uploadBox {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--bg-input);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.uploadBox:hover {
+  border-color: var(--primary);
+  background-color: var(--primary-light);
+}
+
+.uploadIcon {
+  color: var(--text-light);
+}
+
+.uploadText {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.uploadHint {
+  font-size: 11px;
+  color: var(--text-light);
+}
+
+.previewWrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 2px solid var(--border-color);
+}
+
+.previewImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  transition: background-color var(--transition-fast);
+}
+
+.removeBtn:hover {
+  background-color: rgba(239, 68, 68, 0.9);
+}
+
 /* Danger Zone */
 .dangerZone {
   margin-top: 16px;

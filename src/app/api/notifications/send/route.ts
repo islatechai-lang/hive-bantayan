@@ -20,23 +20,32 @@ export async function POST(request: Request) {
       console.log(`OneSignal Server Info: Successfully loaded API Key from server environment (starts with: ${process.env.ONESIGNAL_API_KEY.substring(0, 15)}...)`);
     }
 
+    const isBroadcast = targetUserIds.includes("all");
+    const payload: any = {
+      app_id: ONESIGNAL_APP_ID,
+      target_channel: "push",
+      headings: { en: title },
+      contents: { en: message },
+      data: data || {},
+    };
+
+    if (isBroadcast) {
+      payload.included_segments = ["Total Subscriptions"];
+      console.log("OneSignal Server: Sending push broadcast to all subscriptions.");
+    } else {
+      payload.include_external_user_ids = targetUserIds;
+      payload.include_aliases = {
+        external_id: targetUserIds,
+      };
+    }
+
     const response = await fetch("https://api.onesignal.com/api/v1/notifications", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Key ${ONESIGNAL_API_KEY}`,
       },
-      body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        include_external_user_ids: targetUserIds,
-        include_aliases: {
-          external_id: targetUserIds,
-        },
-        target_channel: "push",
-        headings: { en: title },
-        contents: { en: message },
-        data: data || {},
-      }),
+      body: JSON.stringify(payload),
     });
 
     const result = await response.json();

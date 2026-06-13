@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, RefreshCw, Trash2, AlertTriangle } from "lucide-react";
+import { Save, Loader2, RefreshCw, Trash2, AlertTriangle, Upload, X, ImagePlus } from "lucide-react";
 import { doc, getDoc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
+import { uploadBusinessLogo, uploadBusinessCover } from "@/lib/firebase/storage";
 import { toast } from "react-hot-toast";
 import Button from "@/components/ui/Button/Button";
 import Input from "@/components/ui/Input/Input";
@@ -38,6 +40,16 @@ export default function StoreSettingsPage() {
   const [isOpen, setIsOpen] = useState(true);
   const [isPaused, setIsPaused] = useState(false);
 
+  // Cover & Logo upload states
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [existingLogoUrl, setExistingLogoUrl] = useState<string>("");
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [existingCoverUrl, setExistingCoverUrl] = useState<string>("");
+  const coverInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     if (!user?.businessId) return;
     const businessId = user.businessId;
@@ -57,6 +69,8 @@ export default function StoreSettingsPage() {
           setPrepTime(data.estimatedPrepTime.toString());
           setIsOpen(data.isOpen);
           setIsPaused(data.isPaused || false);
+          setExistingLogoUrl(data.logoUrl || "");
+          setExistingCoverUrl(data.coverUrl || "");
         }
       } catch (error) {
         console.error("Error loading settings:", error);
@@ -75,6 +89,22 @@ export default function StoreSettingsPage() {
     setLoading(true);
 
     try {
+      // Upload new logo if selected
+      let logoUrl = existingLogoUrl;
+      if (logoFile) {
+        toast.loading("Uploading logo...", { id: "logo-upload" });
+        logoUrl = await uploadBusinessLogo(user.businessId, logoFile);
+        toast.dismiss("logo-upload");
+      }
+
+      // Upload new cover if selected
+      let coverUrl = existingCoverUrl;
+      if (coverFile) {
+        toast.loading("Uploading cover...", { id: "cover-upload" });
+        coverUrl = await uploadBusinessCover(user.businessId, coverFile);
+        toast.dismiss("cover-upload");
+      }
+
       const busRef = doc(db, COLLECTIONS.BUSINESSES, user.businessId);
       await updateDoc(busRef, {
         name: name.trim(),
@@ -86,7 +116,19 @@ export default function StoreSettingsPage() {
         estimatedPrepTime: Number(prepTime),
         isOpen,
         isPaused,
+        logoUrl,
+        coverUrl,
       });
+
+      // Update previews to reflect saved state
+      if (logoFile) {
+        setExistingLogoUrl(logoUrl);
+        setLogoFile(null);
+      }
+      if (coverFile) {
+        setExistingCoverUrl(coverUrl);
+        setCoverFile(null);
+      }
 
       toast.success("Settings updated successfully!");
     } catch (error: any) {
@@ -168,6 +210,118 @@ export default function StoreSettingsPage() {
             </span>
           </div>
           <Toggle checked={isPaused} onChange={setIsPaused} />
+        </div>
+
+        <h3 className={styles.sectionTitle}>Store Branding</h3>
+
+        {/* Logo Upload */}
+        <div className={styles.imageUploads}>
+          <label className={styles.label}>Store Logo</label>
+          <input
+            ref={logoInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error("Logo must be under 5MB");
+                  return;
+                }
+                setLogoFile(file);
+                setLogoPreview(URL.createObjectURL(file));
+              }
+            }}
+          />
+          {(logoPreview || existingLogoUrl) ? (
+            <div className={styles.previewWrapper}>
+              <Image
+                src={logoPreview || existingLogoUrl}
+                alt="Logo preview"
+                width={100}
+                height={100}
+                className={styles.previewImage}
+                unoptimized
+              />
+              <button
+                type="button"
+                className={styles.removeBtn}
+                onClick={() => {
+                  setLogoFile(null);
+                  setLogoPreview(null);
+                  setExistingLogoUrl("");
+                  if (logoInputRef.current) logoInputRef.current.value = "";
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className={styles.uploadBox}
+              onClick={() => logoInputRef.current?.click()}
+            >
+              <ImagePlus size={28} className={styles.uploadIcon} />
+              <span className={styles.uploadText}>Tap to upload logo</span>
+              <span className={styles.uploadHint}>PNG, JPG up to 5MB</span>
+            </div>
+          )}
+        </div>
+
+        {/* Cover Banner Upload */}
+        <div className={styles.imageUploads}>
+          <label className={styles.label}>Cover Banner</label>
+          <input
+            ref={coverInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                  toast.error("Cover image must be under 5MB");
+                  return;
+                }
+                setCoverFile(file);
+                setCoverPreview(URL.createObjectURL(file));
+              }
+            }}
+          />
+          {(coverPreview || existingCoverUrl) ? (
+            <div className={styles.previewWrapper} style={{ width: "100%", height: 140 }}>
+              <Image
+                src={coverPreview || existingCoverUrl}
+                alt="Cover preview"
+                fill
+                style={{ objectFit: "cover" }}
+                className={styles.previewImage}
+                unoptimized
+              />
+              <button
+                type="button"
+                className={styles.removeBtn}
+                onClick={() => {
+                  setCoverFile(null);
+                  setCoverPreview(null);
+                  setExistingCoverUrl("");
+                  if (coverInputRef.current) coverInputRef.current.value = "";
+                }}
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <div
+              className={styles.uploadBox}
+              onClick={() => coverInputRef.current?.click()}
+            >
+              <Upload size={28} className={styles.uploadIcon} />
+              <span className={styles.uploadText}>Tap to upload cover banner</span>
+              <span className={styles.uploadHint}>Recommended: 600×200, PNG/JPG up to 5MB</span>
+            </div>
+          )}
         </div>
 
         <h3 className={styles.sectionTitle}>Store Details</h3>

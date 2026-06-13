@@ -37,7 +37,7 @@ export default function BusinessProfilePage() {
 
   if (loading) {
     return (
-      <div className="app-container">
+      <div className={styles.container}>
         <Skeleton height={180} />
         <div style={{ padding: 20 }}>
           <Skeleton width={120} height={20} />
@@ -50,7 +50,7 @@ export default function BusinessProfilePage() {
 
   if (error || !business) {
     return (
-      <div className="app-container" style={{ padding: 40, textAlign: "center" }}>
+      <div className={styles.container} style={{ padding: 40, textAlign: "center" }}>
         <h2>Error Loading Store</h2>
         <p>{error || "Store not found."}</p>
         <Button variant="outline" onClick={() => router.push("/home")} style={{ marginTop: 20 }}>

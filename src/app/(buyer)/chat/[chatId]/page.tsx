@@ -160,7 +160,11 @@ export default function ChatDetailPage() {
             [targetUserId],
             `New message from ${senderName}`,
             textToSend,
-            { chatId, type: "chat_message" }
+            { 
+              chatId, 
+              type: "chat_message",
+              targetUrl: `https://hive-bantayan.vercel.app/chat/${isBusinessUser ? buyerId : businessId}`
+            }
           );
         }
       } catch (pushErr) {
@@ -176,7 +180,7 @@ export default function ChatDetailPage() {
 
   if (loading) {
     return (
-      <div className="app-container">
+      <div className={styles.chatBox}>
         <Skeleton height={50} />
         <div style={{ padding: 20, flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
           <Skeleton height={40} width="60%" style={{ alignSelf: "flex-start" }} />
@@ -196,8 +200,7 @@ export default function ChatDetailPage() {
     : (business?.logoUrl || "/images/logo-placeholder.jpg");
 
   return (
-    <div className="app-container">
-      <div className={styles.chatBox}>
+    <div className={styles.chatBox}>
         {/* Sticky Chat Header */}
         <header className={styles.chatBoxHeader}>
           <button className={styles.backBtn} onClick={() => router.back()} aria-label="Go back">
@@ -265,6 +268,5 @@ export default function ChatDetailPage() {
           </button>
         </form>
       </div>
-    </div>
   );
 }

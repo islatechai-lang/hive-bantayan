@@ -43,7 +43,7 @@ export default function FeedPage() {
 
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
+      <div className={styles.container}>
         <Skeleton height={32} width={150} style={{ marginBottom: 20 }} />
         {[1, 2].map((i) => (
           <Card key={i} style={{ marginBottom: 20, padding: 16 }}>
