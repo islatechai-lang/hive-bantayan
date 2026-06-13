@@ -55,29 +55,22 @@ export const sendPushNotification = async (
   }
 
   try {
-    console.log(`OneSignal: Attempting to send push to: ${targetUserIds.join(", ")}`);
-    const response = await fetch("https://onesignal.com/api/v1/notifications", {
+    console.log(`OneSignal: Requesting push delivery via server proxy for users: ${targetUserIds.join(", ")}`);
+    const response = await fetch("/api/notifications/send", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Basic ${ONESIGNAL_API_KEY}`,
       },
       body: JSON.stringify({
-        app_id: ONESIGNAL_APP_ID,
-        // Target users using both external_id (modern v5+) and legacy include_external_user_ids to guarantee delivery
-        include_external_user_ids: targetUserIds,
-        include_aliases: {
-          external_id: targetUserIds,
-        },
-        target_channel: "push",
-        headings: { en: title },
-        contents: { en: message },
-        data: data || {},
+        targetUserIds,
+        title,
+        message,
+        data,
       }),
     });
 
     const result = await response.json();
-    console.log("OneSignal: Push delivery response:", result);
+    console.log("OneSignal: Server proxy response:", result);
     return result;
   } catch (error) {
     console.error("OneSignal: Failed to send push notification:", error);
