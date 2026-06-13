@@ -27,17 +27,31 @@ export default function CartPage() {
   const subtotal = getCartSubtotal();
   const total = subtotal + deliveryFee;
 
-  // Saved Address simulation (can be queried from user subcollection)
-  const mockAddress = {
-    id: "default-address",
-    label: "home",
-    address: "Bantayan Island Central, Cebu",
-    lat: 11.1685,
-    lng: 123.7268,
-    landmark: "Near Municipal Hall",
-    notes: "Please call on arrival",
-    isDefault: true,
-  };
+  const [addressText, setAddressText] = useState("Bantayan Island, Cebu");
+  const [landmark, setLandmark] = useState("");
+  const [addressNotes, setAddressNotes] = useState("");
+  const [coordinates, setCoordinates] = useState({ lat: 11.1685, lng: 123.7268 });
+  const [gpsStatus, setGpsStatus] = useState<"idle" | "detecting" | "success" | "failed">("idle");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined" && navigator.geolocation) {
+      setGpsStatus("detecting");
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setCoordinates({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setGpsStatus("success");
+        },
+        (error) => {
+          console.error("Error getting location:", error);
+          setGpsStatus("failed");
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }, []);
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -47,6 +61,12 @@ export default function CartPage() {
     }
 
     if (items.length === 0) return;
+
+    if (!addressText.trim()) {
+      toast.error("Please enter a delivery address");
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -65,6 +85,17 @@ export default function CartPage() {
         notes: item.notes || "",
       }));
 
+      const deliveryAddress = {
+        id: "custom-address",
+        label: "Delivery Address",
+        address: addressText,
+        lat: coordinates.lat,
+        lng: coordinates.lng,
+        landmark: landmark,
+        notes: addressNotes,
+        isDefault: true,
+      };
+
       const newOrder = {
         orderNumber,
         customerId: user.id,
@@ -81,8 +112,8 @@ export default function CartPage() {
         status: "pending",
         cancelReason: "",
         cancelledBy: null,
-        deliveryAddress: mockAddress,
-        notes: "",
+        deliveryAddress,
+        notes: addressNotes,
         estimatedDelivery: null,
         statusHistory: [
           {
@@ -236,15 +267,54 @@ export default function CartPage() {
         <div className={styles.addressHeader}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <MapPin size={16} color="var(--primary)" />
-            <span>Delivery Address</span>
+            <span>Delivery details</span>
           </div>
-          <span style={{ color: "var(--primary)", fontSize: 12, cursor: "pointer" }}>Change</span>
+          <span 
+            style={{ 
+              fontSize: 11, 
+              padding: "2px 8px", 
+              borderRadius: "12px", 
+              background: gpsStatus === "success" ? "#D1FAE5" : gpsStatus === "detecting" ? "#FEF3C7" : "#FEE2E2",
+              color: gpsStatus === "success" ? "#065F46" : gpsStatus === "detecting" ? "#92400E" : "#991B1B",
+              fontWeight: 600
+            }}
+          >
+            {gpsStatus === "success" ? "📍 GPS Acquired" : gpsStatus === "detecting" ? "⚡ Fetching GPS..." : "⚠️ GPS Off (Using Default)"}
+          </span>
         </div>
-        <p className={styles.addressDetails}>
-          <strong>{mockAddress.landmark}</strong> <br />
-          {mockAddress.address} <br />
-          <span style={{ fontSize: 11, color: "var(--text-light)" }}>Notes: {mockAddress.notes}</span>
-        </p>
+        <div className={styles.addressForm}>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>Delivery Address / Street / Barangay</label>
+            <input
+              type="text"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+              className={styles.inputField}
+              placeholder="e.g. Brgy. Binaobao, Bantayan Town"
+              required
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>Landmark / House Description</label>
+            <input
+              type="text"
+              value={landmark}
+              onChange={(e) => setLandmark(e.target.value)}
+              className={styles.inputField}
+              placeholder="e.g. Near Bantayan Plaza, red gate"
+            />
+          </div>
+          <div className={styles.inputGroup}>
+            <label className={styles.inputLabel}>Delivery Instructions (for rider)</label>
+            <input
+              type="text"
+              value={addressNotes}
+              onChange={(e) => setAddressNotes(e.target.value)}
+              className={styles.inputField}
+              placeholder="e.g. Leave with guard / call upon arrival"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Payment details (COD exclusive) */}

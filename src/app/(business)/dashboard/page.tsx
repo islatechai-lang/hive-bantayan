@@ -317,31 +317,11 @@ export default function BusinessDashboardPage() {
 
                     {ord.status === "accepted" && (
                       <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => handleUpdateStatus(ord.id, "preparing")}
-                      >
-                        Prepare Order
-                      </Button>
-                    )}
-
-                    {ord.status === "preparing" && (
-                      <Button
-                        variant="accent"
-                        size="sm"
-                        onClick={() => handleUpdateStatus(ord.id, "ready")}
-                      >
-                        Ready for Delivery
-                      </Button>
-                    )}
-
-                    {ord.status === "ready" && (
-                      <Button
                         variant="primary"
                         size="sm"
                         onClick={() => handleUpdateStatus(ord.id, "out_for_delivery")}
                       >
-                        Deliver Order
+                        Out for Delivery
                       </Button>
                     )}
 

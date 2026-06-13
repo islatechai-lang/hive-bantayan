@@ -77,10 +77,6 @@ export default function OrderHistoryPage() {
         return "pending";
       case "accepted":
         return "accepted";
-      case "preparing":
-        return "preparing";
-      case "ready":
-        return "ready";
       case "out_for_delivery":
         return "delivery";
       case "completed":
@@ -94,7 +90,7 @@ export default function OrderHistoryPage() {
 
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
+      <div className={styles.container}>
         <Skeleton height={20} width={120} />
         <Skeleton height={140} style={{ marginTop: 20 }} />
         <Skeleton height={140} style={{ marginTop: 16 }} />

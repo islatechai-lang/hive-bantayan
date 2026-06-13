@@ -35,21 +35,7 @@ export const ORDER_STATUS_CONFIG = {
     color: "#0D9488",
     bgColor: "#D1FAE5",
     icon: "check-circle",
-    description: "Order has been accepted",
-  },
-  preparing: {
-    label: "Preparing",
-    color: "#7C3AED",
-    bgColor: "#EDE9FE",
-    icon: "chef-hat",
-    description: "Your order is being prepared",
-  },
-  ready: {
-    label: "Ready",
-    color: "#2563EB",
-    bgColor: "#DBEAFE",
-    icon: "package-check",
-    description: "Order is ready for pickup/delivery",
+    description: "Store has accepted & is preparing your order",
   },
   out_for_delivery: {
     label: "On the Way",

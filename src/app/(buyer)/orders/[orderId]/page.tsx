@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { ArrowLeft, MessageSquare, Phone, MapPin, AlertCircle, ShoppingBag, CheckCircle2 } from "lucide-react";
-import { subscribeToDocument } from "@/lib/firebase/firestore";
+import Image from "next/image";
+import { subscribeToDocument, getDocument } from "@/lib/firebase/firestore";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { formatCurrency, formatEstimatedTime } from "@/lib/utils/formatters";
 import { createWhatsAppUrl } from "@/lib/utils/helpers";
@@ -11,6 +12,7 @@ import Badge from "@/components/ui/Badge/Badge";
 import Button from "@/components/ui/Button/Button";
 import Card from "@/components/ui/Card/Card";
 import Skeleton from "@/components/ui/Skeleton/Skeleton";
+import DeliveryMap from "@/components/shared/DeliveryMap/DeliveryMap";
 import styles from "../orders.module.css";
 
 export default function OrderTrackingPage() {
@@ -20,6 +22,7 @@ export default function OrderTrackingPage() {
 
   const [order, setOrder] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
+  const [storeCoords, setStoreCoords] = useState<{ lat: number; lng: number } | null>(null);
 
   useEffect(() => {
     if (!orderId) return;
@@ -37,9 +40,29 @@ export default function OrderTrackingPage() {
     return () => unsubscribe();
   }, [orderId]);
 
+  useEffect(() => {
+    if (!order || !order.businessId) return;
+
+    const fetchStoreCoords = async () => {
+      try {
+        const businessDoc: any = await getDocument(COLLECTIONS.BUSINESSES, order.businessId);
+        if (businessDoc && businessDoc.lat && businessDoc.lng) {
+          setStoreCoords({ lat: businessDoc.lat, lng: businessDoc.lng });
+        } else {
+          setStoreCoords({ lat: 11.1685, lng: 123.7268 }); // Bantayan Center
+        }
+      } catch (err) {
+        console.error("Error fetching store coordinates:", err);
+        setStoreCoords({ lat: 11.1685, lng: 123.7268 });
+      }
+    };
+
+    fetchStoreCoords();
+  }, [order]);
+
   if (loading) {
     return (
-      <div className="app-container" style={{ padding: 20 }}>
+      <div className={styles.container}>
         <Skeleton height={20} width={100} />
         <Skeleton height={180} style={{ marginTop: 24 }} />
         <Skeleton height={260} style={{ marginTop: 16 }} />
@@ -49,7 +72,7 @@ export default function OrderTrackingPage() {
 
   if (!order) {
     return (
-      <div className="app-container" style={{ padding: 40, textAlign: "center" }}>
+      <div className={styles.container} style={{ padding: "40px 20px", textAlign: "center" }}>
         <h2>Order Not Found</h2>
         <p>The order you are trying to track does not exist.</p>
         <Button variant="outline" onClick={() => router.push("/orders")} style={{ marginTop: 20 }}>
@@ -62,16 +85,20 @@ export default function OrderTrackingPage() {
   // Define steps for timeline tracking
   const steps = [
     { key: "pending", label: "Order Placed", desc: "Waiting for store validation" },
-    { key: "accepted", label: "Accepted", desc: "Store has accepted your order" },
-    { key: "preparing", label: "Preparing", desc: "Kitchen/store is preparing items" },
-    { key: "ready", label: "Ready", desc: "Items are packed and ready for delivery" },
+    { key: "accepted", label: "Accepted & Preparing", desc: "Store has accepted & is preparing your order" },
     { key: "out_for_delivery", label: "On the Way", desc: "Business rider is delivering" },
     { key: "completed", label: "Completed", desc: "Order delivered successfully" },
   ];
 
-  // Find index of current status
-  const currentStepIdx = steps.findIndex((s) => s.key === order.status);
+  // Map database states (preparing/ready) to "accepted" step
+  const normalizedStatus = (order.status === "preparing" || order.status === "ready") ? "accepted" : order.status;
+  const currentStepIdx = steps.findIndex((s) => s.key === normalizedStatus);
   const isCancelled = order.status === "cancelled";
+
+  const showMap = (order.status === "out_for_delivery" || order.status === "accepted" || order.status === "preparing" || order.status === "ready") &&
+    storeCoords &&
+    order.deliveryAddress?.lat &&
+    order.deliveryAddress?.lng;
 
   return (
     <div className={styles.container}>
@@ -79,7 +106,7 @@ export default function OrderTrackingPage() {
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <button
           onClick={() => router.push("/orders")}
-          style={{ cursor: "pointer", display: "flex", color: "var(--text-muted)" }}
+          style={{ cursor: "pointer", display: "flex", color: "var(--text-muted)", background: "none", border: "none" }}
         >
           <ArrowLeft size={20} />
         </button>
@@ -93,7 +120,7 @@ export default function OrderTrackingPage() {
             <span style={{ fontSize: 12, color: "var(--text-light)" }}>ORDER NUMBER</span>
             <h3 style={{ fontSize: 16, fontWeight: 700 }}>{order.orderNumber}</h3>
           </div>
-          <Badge variant={isCancelled ? "cancelled" : "primary"}>
+          <Badge variant={isCancelled ? "cancelled" : (order.status === "out_for_delivery" ? "delivery" : order.status === "completed" ? "completed" : "accepted")}>
             {order.status.replace(/_/g, " ").toUpperCase()}
           </Badge>
         </div>
@@ -104,7 +131,31 @@ export default function OrderTrackingPage() {
         <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 4 }}>
           Payment: <strong>Cash on Delivery (COD)</strong>
         </p>
+        {order.notes && (
+          <p style={{ fontSize: 13, color: "var(--text-light)", marginTop: 6, fontStyle: "italic" }}>
+            Note: "{order.notes}"
+          </p>
+        )}
       </Card>
+
+      {/* Map Delivery Route */}
+      {showMap && (
+        <Card style={{ padding: 0, overflow: "hidden" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--border-color)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 6 }}>
+              <MapPin size={16} color="var(--primary)" />
+              Live Delivery Route
+            </span>
+            <span style={{ fontSize: 11, color: "var(--text-light)" }}>Bantayan Island</span>
+          </div>
+          <DeliveryMap
+            origin={storeCoords!}
+            destination={{ lat: order.deliveryAddress.lat, lng: order.deliveryAddress.lng }}
+            originName={order.businessName}
+            destinationName="Your Location"
+          />
+        </Card>
+      )}
 
       {/* Timeline Statuses */}
       {isCancelled ? (
@@ -145,19 +196,29 @@ export default function OrderTrackingPage() {
 
       {/* Items Summary detail lists */}
       <Card className={styles.detailsCard}>
-        <h3 style={{ fontSize: 16, borderBottom: "1px solid var(--border-color)", paddingBottom: 8 }}>
+        <h3 style={{ fontSize: 16, borderBottom: "1px solid var(--border-color)", paddingBottom: 8, marginBottom: 12 }}>
           Items Summary
         </h3>
-        {order.items.map((it: any, idx: number) => (
-          <div key={idx} className={styles.detailRow}>
-            <span>
-              {it.qty}x {it.name}{" "}
-              {it.variant && <span style={{ fontSize: 11, color: "var(--text-light)" }}>({it.variant})</span>}
-            </span>
-            <span>{formatCurrency(it.price * it.qty)}</span>
-          </div>
-        ))}
-        <div className={styles.detailRow} style={{ borderTop: "1px solid var(--border-color)", paddingTop: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {order.items.map((it: any, idx: number) => (
+            <div key={idx} style={{ display: "flex", gap: 12, alignItems: "center", paddingBottom: 12, borderBottom: "1px solid var(--border-color-light, #f1f5f9)" }}>
+              {it.imageUrl && (
+                <div style={{ position: "relative", width: 44, height: 44, borderRadius: "6px", overflow: "hidden", flexShrink: 0, border: "1px solid var(--border-color)" }}>
+                  <Image src={it.imageUrl} alt={it.name} fill style={{ objectFit: "cover" }} />
+                </div>
+              )}
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-main)" }}>
+                  {it.name} <span style={{ color: "var(--primary)", fontSize: 12 }}>x{it.qty}</span>
+                </span>
+                {it.variant && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{it.variant}</span>}
+                {it.notes && <span style={{ fontSize: 11, color: "var(--text-light)", fontStyle: "italic" }}>"{it.notes}"</span>}
+              </div>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-main)" }}>{formatCurrency(it.price * it.qty)}</span>
+            </div>
+          ))}
+        </div>
+        <div className={styles.detailRow} style={{ borderTop: "1px solid var(--border-color)", paddingTop: 10, marginTop: 8 }}>
           <span>Subtotal</span>
           <span>{formatCurrency(order.subtotal)}</span>
         </div>
