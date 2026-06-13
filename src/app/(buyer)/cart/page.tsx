@@ -146,6 +146,7 @@ export default function CartPage() {
   };
 
   const submitOrder = async (shouldSave = false, label = "Home") => {
+    if (!user) return;
     setShowSaveModal(false);
     setLoading(true);
 
