@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, MessageSquare, Phone, MapPin, Clock, Award, Star, ShoppingBag, Check } from "lucide-react";
+import { ArrowLeft, MessageSquare, Phone, MapPin, Clock, Award, Star, ShoppingBag, Check, ArrowRight } from "lucide-react";
 import { useProducts } from "@/lib/hooks/useProducts";
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useAuthStore } from "@/lib/stores/authStore";
@@ -24,6 +24,9 @@ export default function BusinessProfilePage() {
 
   const { products, business, loading, error } = useProducts(businessId);
   const addItem = useCartStore((state) => state.addItem);
+  const cartSubtotal = useCartStore((state) => state.getCartSubtotal());
+  const cartItemsCount = useCartStore((state) => state.getCartItemsCount());
+  const cartBusinessId = useCartStore((state) => state.getBusinessId());
   const { user } = useAuthStore();
 
   const [activeTab, setActiveTab] = useState<"products" | "info">("products");
@@ -107,6 +110,32 @@ export default function BusinessProfilePage() {
       const idx = Math.round(scrollLeft / width);
       setActiveImageIdx(idx);
     }
+  };
+
+  const handleAddImmediate = (product: any) => {
+    // Check if cart contains items from a different business
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0 && cartItems[0].businessId !== business.id) {
+      const confirmClear = confirm(
+        `Your cart contains items from "${cartItems[0].businessName}". Would you like to clear those items and add this item from "${business.name}" instead?`
+      );
+      if (!confirmClear) return;
+    }
+
+    addItem({
+      productId: product.id,
+      businessId: business.id,
+      businessName: business.name,
+      name: product.name,
+      imageUrl: product.images?.[0] || "/images/product-placeholder.jpg",
+      price: product.price,
+      quantity: 1,
+      selectedVariants: [],
+      selectedAddOns: [],
+      notes: "",
+    });
+
+    toast.success(`${product.name} added to cart!`);
   };
 
   const handleAddToCart = () => {
@@ -301,6 +330,7 @@ export default function BusinessProfilePage() {
                 key={prod.id}
                 product={prod}
                 onSelect={handleOpenProduct}
+                onAddImmediate={handleAddImmediate}
               />
             ))
           )}
@@ -486,6 +516,20 @@ export default function BusinessProfilePage() {
           </Modal>
         );
       })()}
+
+      {/* Floating Bottom Cart Bar */}
+      {cartItemsCount > 0 && cartBusinessId === business.id && (
+        <div className={styles.floatingCartBar}>
+          <div className={styles.floatingCartLeft}>
+            <ShoppingBag size={20} />
+            <span>{cartItemsCount} {cartItemsCount === 1 ? "item" : "items"} • {formatCurrency(cartSubtotal)}</span>
+          </div>
+          <button onClick={() => router.push("/cart")} className={styles.floatingCartBtn}>
+            <span>View Cart</span>
+            <ArrowRight size={18} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

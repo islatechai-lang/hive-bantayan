@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils/cn";
 export interface ProductCardProps {
   product: Product;
   onSelect: (product: Product) => void;
+  onAddImmediate?: (product: Product) => void;
 }
 
-const ProductCard = ({ product, onSelect }: ProductCardProps) => {
+const ProductCard = ({ product, onSelect, onAddImmediate }: ProductCardProps) => {
   const isOutOfStock = !product.inStock || product.stockQty <= 0;
 
   return (
@@ -55,7 +56,12 @@ const ProductCard = ({ product, onSelect }: ProductCardProps) => {
             className={styles.addBtn}
             onClick={(e) => {
               e.stopPropagation();
-              onSelect(product);
+              const hasOptions = (product.variants && product.variants.length > 0) || (product.addOns && product.addOns.length > 0);
+              if (onAddImmediate && !hasOptions) {
+                onAddImmediate(product);
+              } else {
+                onSelect(product);
+              }
             }}
             disabled={isOutOfStock}
             aria-label={`Add ${product.name} to cart`}
