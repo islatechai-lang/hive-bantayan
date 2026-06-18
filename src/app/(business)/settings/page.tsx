@@ -3,10 +3,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Save, Loader2, RefreshCw, Trash2, AlertTriangle, Upload, X, ImagePlus } from "lucide-react";
+import { Save, Loader2, RefreshCw, Trash2, AlertTriangle, Upload, X, ImagePlus, LogOut } from "lucide-react";
 import { doc, getDoc, updateDoc, deleteDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase/config";
 import { COLLECTIONS } from "@/lib/utils/constants";
+import { signOut } from "@/lib/firebase/auth";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { useUIStore } from "@/lib/stores/uiStore";
 import { uploadBusinessLogo, uploadBusinessCover } from "@/lib/firebase/storage";
@@ -20,12 +21,28 @@ import styles from "./settings.module.css";
 
 export default function StoreSettingsPage() {
   const router = useRouter();
-  const { user, setUser } = useAuthStore();
+  const { user, setUser, reset: resetAuth } = useAuthStore();
   const { setMode } = useUIStore();
   const [loading, setLoading] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await signOut();
+      resetAuth();
+      toast.success("Logged out successfully");
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      toast.error("Failed to log out");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   // Business States
   const [name, setName] = useState("");
@@ -393,6 +410,27 @@ export default function StoreSettingsPage() {
           Save Configurations
         </Button>
       </form>
+
+      {/* Account Session / Logout */}
+      <div className={styles.logoutZone}>
+        <h3 className={styles.logoutTitle}>
+          <LogOut size={16} />
+          Account Session
+        </h3>
+        <p className={styles.logoutDesc}>
+          Sign out of your account on this device. You can log back in at any time.
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          leftIcon={<LogOut size={16} />}
+          loading={loggingOut}
+          onClick={handleLogout}
+          style={{ alignSelf: "flex-start" }}
+        >
+          Sign Out
+        </Button>
+      </div>
 
       {/* Danger Zone */}
       <div className={styles.dangerZone}>

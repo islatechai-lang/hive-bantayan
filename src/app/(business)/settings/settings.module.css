@@ -170,3 +170,30 @@
   color: var(--text-muted);
   line-height: 1.5;
 }
+
+.logoutZone {
+  margin-top: 16px;
+  padding: 20px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.logoutTitle {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoutDesc {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
