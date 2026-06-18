@@ -36,6 +36,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         try {
           const userDoc = await getCurrentUserDoc();
           setUser(userDoc);
+          if (userDoc) {
+            const currentMode = useUIStore.getState().currentMode;
+            if (userDoc.role === "buyer" && currentMode !== "buyer") {
+              useUIStore.getState().setMode("buyer");
+            } else if (userDoc.role === "business" && currentMode !== "business") {
+              useUIStore.getState().setMode("business");
+            }
+          }
           registerOneSignalUser(firebaseUser.uid);
         } catch (error) {
           console.error("Error fetching user document:", error);

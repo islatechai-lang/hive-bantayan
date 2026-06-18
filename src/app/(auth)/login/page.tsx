@@ -176,13 +176,13 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <button
+                 <button
                   type="submit"
                   disabled={loading || phoneNumber.length < 10}
                   className={styles.submitBtn}
                 >
                   {loading ? (
-                    <Loader2 size={20} className="pulse" />
+                    <Loader2 size={20} className={styles.spinner} />
                   ) : (
                     <Phone size={18} />
                   )}
@@ -211,7 +211,7 @@ export default function LoginPage() {
                   className={styles.submitBtn}
                 >
                   {loading ? (
-                    <Loader2 size={20} className="pulse" />
+                    <Loader2 size={20} className={styles.spinner} />
                   ) : (
                     <Check size={18} />
                   )}

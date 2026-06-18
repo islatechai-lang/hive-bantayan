@@ -16,6 +16,14 @@ import Card from "@/components/ui/Card/Card";
 import Toggle from "@/components/ui/Toggle/Toggle";
 import styles from "./profile.module.css";
 
+const getInitials = (name?: string) => {
+  if (!name) return "?";
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 0) return "?";
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+};
+
 export default function ProfilePage() {
   const router = useRouter();
   const { user, setUser, reset: resetAuth } = useAuthStore();
@@ -78,12 +86,18 @@ export default function ProfilePage() {
       {/* User Information Card */}
       <div className={styles.profileCard}>
         <div className={styles.avatar}>
-          <Image
-            src={user?.photoUrl || "/images/avatar-placeholder.jpg"}
-            alt={user?.displayName || "Profile"}
-            fill
-            className={styles.avatarImage}
-          />
+          {user?.photoUrl ? (
+            <Image
+              src={user.photoUrl}
+              alt={user.displayName || "Profile"}
+              fill
+              className={styles.avatarImage}
+            />
+          ) : (
+            <div className={styles.avatarFallback}>
+              {getInitials(user?.displayName)}
+            </div>
+          )}
         </div>
         <div className={styles.userInfo}>
           <h2 className={styles.name}>{user?.displayName || "Guest User"}</h2>
@@ -96,18 +110,20 @@ export default function ProfilePage() {
         <h3 className={styles.sectionTitle}>Preferences</h3>
         
         {/* Switch mode preferences */}
-        <div className={styles.menuItem}>
-          <div className={styles.menuLeft}>
-            <Store size={18} className={styles.menuIcon} />
-            <span>Business Mode</span>
+        {user?.role === "admin" && (
+          <div className={styles.menuItem}>
+            <div className={styles.menuLeft}>
+              <Store size={18} className={styles.menuIcon} />
+              <span>Business Mode</span>
+            </div>
+            <div className={styles.menuRight}>
+              <Toggle
+                checked={currentMode === "business"}
+                onChange={handleModeChange}
+              />
+            </div>
           </div>
-          <div className={styles.menuRight}>
-            <Toggle
-              checked={currentMode === "business"}
-              onChange={handleModeChange}
-            />
-          </div>
-        </div>
+        )}
 
         {/* Theme mode preferences */}
         <div className={styles.menuItem} onClick={toggleTheme}>
@@ -176,7 +192,7 @@ export default function ProfilePage() {
             <LogOut size={18} />
             <span>Sign Out</span>
           </div>
-          {loggingOut && <Loader2 size={16} className="pulse" />}
+          {loggingOut && <Loader2 size={16} className={styles.spinner} />}
         </button>
       </section>
     </div>

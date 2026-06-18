@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { LayoutDashboard, ShoppingCart, Settings, ArrowLeft, Menu, X, PlusCircle, MessageSquare, Tag } from "lucide-react";
 import { useUIStore } from "@/lib/stores/uiStore";
+import { useAuthStore } from "@/lib/stores/authStore";
 import styles from "./layout.module.css";
 import { cn } from "@/lib/utils/cn";
 
@@ -17,6 +18,7 @@ export default function BusinessShellLayout({
   const pathname = usePathname();
   const router = useRouter();
   const { setMode } = useUIStore();
+  const { user } = useAuthStore();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const navLinks = [
@@ -85,14 +87,16 @@ export default function BusinessShellLayout({
                 })}
               </nav>
 
-              <button
-                onClick={handleSwitchToBuyer}
-                className={styles.navLink}
-                style={{ borderTop: "1px solid var(--border-color)", paddingTop: 16 }}
-              >
-                <ArrowLeft size={18} />
-                <span>Buyer Mode</span>
-              </button>
+              {user?.role === "admin" && (
+                <button
+                  onClick={handleSwitchToBuyer}
+                  className={styles.navLink}
+                  style={{ borderTop: "1px solid var(--border-color)", paddingTop: 16 }}
+                >
+                  <ArrowLeft size={18} />
+                  <span>Buyer Mode</span>
+                </button>
+              )}
             </motion.aside>
           </>
         )}
