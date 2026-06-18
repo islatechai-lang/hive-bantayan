@@ -30,18 +30,17 @@ export default function AddEditProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [comparePrice, setComparePrice] = useState("");
-  const [category, setCategory] = useState("Main Course");
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-
-  // Custom Variants options state (e.g. Pizza Sizes)
-  const [variantName, setVariantName] = useState("Size");
-  const [variantsList, setVariantsList] = useState<any[]>([
-    { label: "Regular", price: 0 },
-    { label: "Large", price: 50 },
+  const [productImages, setProductImages] = useState<{ url: string | null; file: File | null }[]>([
+    { url: null, file: null },
+    { url: null, file: null },
+    { url: null, file: null },
   ]);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Custom Variants options state
+  const [variantName, setVariantName] = useState("");
+  const [variantsList, setVariantsList] = useState<any[]>([]);
 
   useEffect(() => {
     if (isNew || !user?.businessId) return;
@@ -56,10 +55,12 @@ export default function AddEditProductPage() {
           setName(data.name);
           setDescription(data.description);
           setPrice(data.price.toString());
-          setComparePrice(data.compareAtPrice?.toString() || "");
-          setCategory(data.category);
-          if (data.images?.[0]) {
-            setImagePreview(data.images[0]);
+          if (data.images && data.images.length > 0) {
+            setProductImages([
+              { url: data.images[0] || null, file: null },
+              { url: data.images[1] || null, file: null },
+              { url: data.images[2] || null, file: null },
+            ]);
           }
           if (data.variants && data.variants.length > 0) {
             setVariantName(data.variants[0].name);
@@ -99,36 +100,46 @@ export default function AddEditProductPage() {
       return;
     }
 
-    if (!imageFile && !imagePreview) {
-      toast.error("Please add a product image");
+    const activeImages = productImages.filter((img) => img.url !== null || img.file !== null);
+    if (activeImages.length === 0) {
+      toast.error("Please add at least one product image");
       return;
     }
 
     setLoading(true);
 
     try {
-      // Upload new image if a file was selected
-      let finalImageUrl = imagePreview || "";
-      if (imageFile) {
-        toast.loading("Uploading image...", { id: "img-upload" });
-        finalImageUrl = await uploadFile(`businesses/${user.businessId}/products`, imageFile);
-        toast.dismiss("img-upload");
+      toast.loading("Uploading images...", { id: "img-upload" });
+      const finalUrls: string[] = [];
+      for (const img of productImages) {
+        if (img.file) {
+          const uploadedUrl = await uploadFile(`businesses/${user.businessId}/products`, img.file);
+          finalUrls.push(uploadedUrl);
+        } else if (img.url) {
+          finalUrls.push(img.url);
+        }
       }
+      toast.dismiss("img-upload");
 
-      const formattedVariants = variantsList.filter((v) => v.label.trim() !== "");
+      const formattedVariants = variantsList
+        .filter((v) => v.label.trim() !== "")
+        .map((v) => ({ label: v.label.trim(), price: 0 }));
+
+      const hasVariants = variantName.trim() !== "" && formattedVariants.length > 0;
+
       const productPayload = {
         businessId: user.businessId,
         businessName: user.displayName,
         name: name.trim(),
         description: description.trim(),
         price: Number(price),
-        compareAtPrice: comparePrice ? Number(comparePrice) : null,
-        images: [finalImageUrl],
-        category: category.trim(),
+        compareAtPrice: null,
+        images: finalUrls,
+        category: "General",
         inStock: true,
         stockQty: 999,
         soldQty: 0,
-        variants: formattedVariants.length > 0 ? [{ name: variantName, options: formattedVariants }] : [],
+        variants: hasVariants ? [{ name: variantName.trim(), options: formattedVariants }] : [],
         addOns: [],
         isFeatured: false,
       };
@@ -192,84 +203,82 @@ export default function AddEditProductPage() {
             required
           />
 
-          <div className={styles.row}>
-            <Input
-              label="Price (₱)"
-              type="number"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              required
-            />
-            <Input
-              label="Compare Price (₱)"
-              type="number"
-              placeholder="Optional sale price"
-              value={comparePrice}
-              onChange={(e) => setComparePrice(e.target.value)}
-            />
-          </div>
+          <Input
+            label="Price (₱)"
+            type="number"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            required
+          />
 
           {/* Product Image Upload */}
           <div className={styles.imageUploadSection}>
-            <label className={styles.uploadLabel}>Product Image *</label>
+            <label className={styles.uploadLabel}>Product Images (Up to 3, min 1 required) *</label>
             <input
-              ref={imageInputRef}
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               style={{ display: "none" }}
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) {
+                if (file && activeSlot !== null) {
                   if (file.size > 5 * 1024 * 1024) {
                     toast.error("Image must be under 5MB");
                     return;
                   }
-                  setImageFile(file);
-                  setImagePreview(URL.createObjectURL(file));
+                  const newImages = [...productImages];
+                  newImages[activeSlot] = {
+                    url: URL.createObjectURL(file),
+                    file: file
+                  };
+                  setProductImages(newImages);
+                  e.target.value = "";
                 }
               }}
             />
-            {imagePreview ? (
-              <div className={styles.imgPreviewWrapper}>
-                <Image
-                  src={imagePreview}
-                  alt="Product preview"
-                  width={160}
-                  height={120}
-                  className={styles.imgPreview}
-                  unoptimized
-                />
-                <button
-                  type="button"
-                  className={styles.imgRemoveBtn}
-                  onClick={() => {
-                    setImageFile(null);
-                    setImagePreview(null);
-                    if (imageInputRef.current) imageInputRef.current.value = "";
-                  }}
-                >
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              <div
-                className={styles.imgUploadBox}
-                onClick={() => imageInputRef.current?.click()}
-              >
-                <ImagePlus size={32} className={styles.imgUploadIcon} />
-                <span className={styles.imgUploadText}>Tap to upload product photo</span>
-                <span className={styles.imgUploadHint}>PNG, JPG up to 5MB</span>
-              </div>
-            )}
+            <div className={styles.imageSlotsRow}>
+              {productImages.map((img, idx) => (
+                <div key={idx} className={styles.imageSlotContainer}>
+                  <span className={styles.slotLabel}>
+                    {idx === 0 ? "Main (Req)" : `Image ${idx + 1}`}
+                  </span>
+                  {img.url ? (
+                    <div className={styles.imgPreviewWrapper}>
+                      <Image
+                        src={img.url}
+                        alt={`Preview ${idx + 1}`}
+                        fill
+                        className={styles.imgPreview}
+                        unoptimized
+                      />
+                      <button
+                        type="button"
+                        className={styles.imgRemoveBtn}
+                        onClick={() => {
+                          const newImages = [...productImages];
+                          newImages[idx] = { url: null, file: null };
+                          setProductImages(newImages);
+                        }}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div
+                      className={styles.imgUploadBoxSmall}
+                      onClick={() => {
+                        setActiveSlot(idx);
+                        fileInputRef.current?.click();
+                      }}
+                    >
+                      <ImagePlus size={20} className={styles.imgUploadIcon} />
+                      <span className={styles.uploadBtnText}>Upload</span>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
-
-          <Input
-            label="Menu Category"
-            placeholder="e.g. Seafood, Drinks, Pizza"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-          />
 
           {/* Variants customization area */}
           <h3 className={styles.sectionTitle}>Product Options / Variants</h3>
@@ -285,22 +294,15 @@ export default function AddEditProductPage() {
             {variantsList.map((opt, idx) => (
               <div key={idx} style={{ display: "flex", gap: 10, alignItems: "center" }}>
                 <Input
-                  placeholder="e.g. Large"
+                  placeholder="e.g. Large, Spicy, Chocolate"
                   value={opt.label}
                   onChange={(e) => handleUpdateOption(idx, "label", e.target.value)}
-                  wrapperClassName={styles.optionInput}
-                />
-                <Input
-                  type="number"
-                  placeholder="Price (+)"
-                  value={opt.price}
-                  onChange={(e) => handleUpdateOption(idx, "price", Number(e.target.value))}
-                  wrapperClassName={styles.optionPriceInput}
+                  wrapperClassName={styles.optionInputFull}
                 />
                 <button
                   type="button"
                   onClick={() => handleRemoveOption(idx)}
-                  style={{ color: "var(--status-cancelled)", cursor: "pointer", marginTop: 20 }}
+                  style={{ color: "var(--status-cancelled)", cursor: "pointer", marginTop: 18 }}
                   aria-label="Remove option"
                 >
                   <Trash2 size={18} />

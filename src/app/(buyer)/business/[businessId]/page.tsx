@@ -34,6 +34,7 @@ export default function BusinessProfilePage() {
   const [selectedVariants, setSelectedVariants] = useState<any[]>([]);
   const [selectedAddOns, setSelectedAddOns] = useState<any[]>([]);
   const [orderNotes, setOrderNotes] = useState("");
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
 
   if (loading) {
     return (
@@ -96,6 +97,16 @@ export default function BusinessProfilePage() {
     setSelectedVariants([]);
     setSelectedAddOns([]);
     setOrderNotes("");
+    setActiveImageIdx(0);
+  };
+
+  const handleImageScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const width = e.currentTarget.clientWidth;
+    if (width > 0) {
+      const idx = Math.round(scrollLeft / width);
+      setActiveImageIdx(idx);
+    }
   };
 
   const handleAddToCart = () => {
@@ -109,6 +120,15 @@ export default function BusinessProfilePage() {
         toast.error(`Please select option for: ${missing[0].name}`);
         return;
       }
+    }
+
+    // Check if cart contains items from a different business
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0 && cartItems[0].businessId !== business.id) {
+      const confirmClear = confirm(
+        `Your cart contains items from "${cartItems[0].businessName}". Would you like to clear those items and add this item from "${business.name}" instead?`
+      );
+      if (!confirmClear) return;
     }
 
     addItem({
@@ -139,6 +159,15 @@ export default function BusinessProfilePage() {
         toast.error(`Please select option for: ${missing[0].name}`);
         return;
       }
+    }
+
+    // Check if cart contains items from a different business
+    const cartItems = useCartStore.getState().items;
+    if (cartItems.length > 0 && cartItems[0].businessId !== business.id) {
+      const confirmClear = confirm(
+        `Your cart contains items from "${cartItems[0].businessName}". Would you like to clear those items and add this item from "${business.name}" instead?`
+      );
+      if (!confirmClear) return;
     }
 
     addItem({
@@ -300,63 +329,135 @@ export default function BusinessProfilePage() {
       )}
 
       {/* Product Detail Modal overlay */}
-      {selectedProduct && (
-        <Modal
-          isOpen={!!selectedProduct}
-          onClose={() => setSelectedProduct(null)}
-          title="Customize Product"
-          footer={
-            <div style={{ display: "flex", gap: 10, width: "100%" }}>
-              <Button variant="outline" fullWidth onClick={handleAddToCart}>
-                Add to Cart
-              </Button>
-              <Button variant="primary" fullWidth onClick={handleBuyNow}>
-                Buy Now — {formatCurrency(selectedProduct.price * qty)}
-              </Button>
-            </div>
-          }
-        >
-          <div className={styles.modalBody}>
-            {selectedProduct.images?.[0] && (
-              <div className={styles.modalImageWrapper}>
-                <Image
-                  src={selectedProduct.images[0]}
-                  alt={selectedProduct.name}
-                  fill
-                  className={styles.modalImage}
-                />
+      {selectedProduct && (() => {
+        const isOutOfStock = !selectedProduct.inStock || selectedProduct.stockQty <= 0;
+        return (
+          <Modal
+            isOpen={!!selectedProduct}
+            onClose={() => setSelectedProduct(null)}
+            title="Customize Product"
+            footer={
+              <div style={{ display: "flex", gap: 10, width: "100%" }}>
+                {isOutOfStock ? (
+                  <Button variant="primary" fullWidth disabled>
+                    Sold Out
+                  </Button>
+                ) : (
+                  <>
+                    <Button variant="outline" fullWidth onClick={handleAddToCart}>
+                      Add to Cart
+                    </Button>
+                    <Button variant="primary" fullWidth onClick={handleBuyNow}>
+                      Buy Now — {formatCurrency(selectedProduct.price * qty)}
+                    </Button>
+                  </>
+                )}
               </div>
-            )}
+            }
+          >
+            <div className={styles.modalBody}>
+              {selectedProduct.images && selectedProduct.images.length > 0 && (
+                <div className={styles.modalImagesContainer}>
+                  <div className={styles.modalImagesSlider} onScroll={handleImageScroll}>
+                    {selectedProduct.images.map((imgUrl: string, idx: number) => (
+                      <div key={idx} className={styles.modalImageSlide}>
+                        <Image
+                          src={imgUrl}
+                          alt={`${selectedProduct.name} - ${idx + 1}`}
+                          fill
+                          className={styles.modalImage}
+                          unoptimized
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {selectedProduct.images.length > 1 && (
+                    <div className={styles.imageDots}>
+                      {selectedProduct.images.map((_: any, idx: number) => (
+                        <span
+                          key={idx}
+                          className={`${styles.imageDot} ${activeImageIdx === idx ? styles.activeDot : ""}`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
-            <div className={styles.modalTitleRow}>
-              <h2 className={styles.modalName}>{selectedProduct.name}</h2>
-              <p className={styles.modalDesc}>{selectedProduct.description}</p>
-            </div>
+              <div className={styles.modalTitleRow}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
+                  <h2 className={styles.modalName}>{selectedProduct.name}</h2>
+                  {isOutOfStock && (
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: "var(--status-cancelled)",
+                        backgroundColor: "var(--status-cancelled-light)",
+                        padding: "4px 8px",
+                        borderRadius: "6px",
+                        textTransform: "uppercase"
+                      }}
+                    >
+                      Sold Out
+                    </span>
+                  )}
+                </div>
+                <p className={styles.modalDesc}>{selectedProduct.description}</p>
+              </div>
 
-            {/* Custom Variants selection */}
-            {selectedProduct.variants?.map((v: any, index: number) => {
-              const currentSelect = selectedVariants.find((sv) => sv.variantName === v.name);
-              
-              return (
-                <div key={index} className={styles.optionSection}>
-                  <h4 className={styles.optionSectionTitle}>
-                    <span>Select {v.name}</span>
-                    <span className={styles.requiredTag}>Required</span>
-                  </h4>
+              {/* Custom Variants selection */}
+              {selectedProduct.variants?.map((v: any, index: number) => {
+                const currentSelect = selectedVariants.find((sv) => sv.variantName === v.name);
+                
+                return (
+                  <div key={index} className={styles.optionSection}>
+                    <h4 className={styles.optionSectionTitle}>
+                      <span>Select {v.name}</span>
+                      <span className={styles.requiredTag}>Required</span>
+                    </h4>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                      {v.options.map((opt: any, optIdx: number) => {
+                        const isSelected = currentSelect?.selectedOption.label === opt.label;
+                        return (
+                          <div
+                            key={optIdx}
+                            onClick={() => handleSelectOption(v.name, opt)}
+                            className={`${styles.variantRow} ${isSelected ? styles.selectedVariant : ""}`}
+                          >
+                            <span>{opt.label}</span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              {opt.price > 0 && <span>+{formatCurrency(opt.price)}</span>}
+                              <div className={styles.radioCircle}>
+                                {isSelected && <div className={styles.radioFill} />}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Custom Add-ons selection */}
+              {selectedProduct.addOns && selectedProduct.addOns.length > 0 && (
+                <div className={styles.optionSection}>
+                  <h4 className={styles.optionSectionTitle}>Add-ons (Optional)</h4>
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                    {v.options.map((opt: any, optIdx: number) => {
-                      const isSelected = currentSelect?.selectedOption.label === opt.label;
+                    {selectedProduct.addOns.map((add: any, addIdx: number) => {
+                      const isSelected = selectedAddOns.some((sa) => sa.name === add.name);
                       return (
                         <div
-                          key={optIdx}
-                          onClick={() => handleSelectOption(v.name, opt)}
-                          className={`${styles.variantRow} ${isSelected ? styles.selectedVariant : ""}`}
+                          key={addIdx}
+                          onClick={() => handleToggleAddOn(add)}
+                          className={`${styles.addOnRow} ${isSelected ? styles.selectedAddOn : ""}`}
                         >
-                          <span>{opt.label}</span>
+                          <span>{add.name}</span>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            {opt.price > 0 && <span>+{formatCurrency(opt.price)}</span>}
-                            <div className={styles.radioCircle}>
-                              {isSelected && <div className={styles.radioFill} />}
+                            <span>+{formatCurrency(add.price)}</span>
+                            <div className={styles.checkboxSquare}>
+                              {isSelected && <Check size={12} />}
                             </div>
                           </div>
                         </div>
@@ -364,52 +465,27 @@ export default function BusinessProfilePage() {
                     })}
                   </div>
                 </div>
-              );
-            })}
+              )}
 
-            {/* Custom Add-ons selection */}
-            {selectedProduct.addOns && selectedProduct.addOns.length > 0 && (
-              <div className={styles.optionSection}>
-                <h4 className={styles.optionSectionTitle}>Add-ons (Optional)</h4>
-                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                  {selectedProduct.addOns.map((add: any, addIdx: number) => {
-                    const isSelected = selectedAddOns.some((sa) => sa.name === add.name);
-                    return (
-                      <div
-                        key={addIdx}
-                        onClick={() => handleToggleAddOn(add)}
-                        className={`${styles.addOnRow} ${isSelected ? styles.selectedAddOn : ""}`}
-                      >
-                        <span>{add.name}</span>
-                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                          <span>+{formatCurrency(add.price)}</span>
-                          <div className={styles.checkboxSquare}>
-                            {isSelected && <Check size={12} />}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
+              {/* Quantity adjustments */}
+              {!isOutOfStock && (
+                <div className={styles.quantityRow}>
+                  <span>Quantity:</span>
+                  <div className={styles.qtyActions}>
+                    <button className={styles.qtyBtn} onClick={() => setQty(Math.max(1, qty - 1))}>
+                      -
+                    </button>
+                    <span className={styles.qtyVal}>{qty}</span>
+                    <button className={styles.qtyBtn} onClick={() => setQty(qty + 1)}>
+                      +
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Quantity adjustments */}
-            <div className={styles.quantityRow}>
-              <span>Quantity:</span>
-              <div className={styles.qtyActions}>
-                <button className={styles.qtyBtn} onClick={() => setQty(Math.max(1, qty - 1))}>
-                  -
-                </button>
-                <span className={styles.qtyVal}>{qty}</span>
-                <button className={styles.qtyBtn} onClick={() => setQty(qty + 1)}>
-                  +
-                </button>
-              </div>
+              )}
             </div>
-          </div>
-        </Modal>
-      )}
+          </Modal>
+        );
+      })()}
     </div>
   );
 }

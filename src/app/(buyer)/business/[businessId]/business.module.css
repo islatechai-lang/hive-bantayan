@@ -342,3 +342,58 @@
   font-size: 28px;
   font-weight: 800;
 }
+
+.modalImagesContainer {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.modalImagesSlider {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalImagesSlider::-webkit-scrollbar {
+  display: none;
+}
+
+.modalImageSlide {
+  flex: 0 0 100%;
+  scroll-snap-align: start;
+  position: relative;
+  width: 100%;
+  height: 180px;
+  background-color: var(--bg-hover);
+}
+
+.imageDots {
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.imageDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  transition: all var(--transition-fast);
+}
+
+.activeDot {
+  background-color: var(--primary) !important;
+  transform: scale(1.2);
+}
+

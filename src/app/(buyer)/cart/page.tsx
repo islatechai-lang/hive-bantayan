@@ -8,6 +8,8 @@ import { Trash2, ShoppingBag, MapPin, CreditCard, ArrowRight, Loader2 } from "lu
 import { useCartStore } from "@/lib/stores/cartStore";
 import { useAuthStore } from "@/lib/stores/authStore";
 import { addDocument, getDocument } from "@/lib/firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase/config";
 import { sendPushNotification } from "@/lib/utils/onesignal";
 import { COLLECTIONS } from "@/lib/utils/constants";
 import { formatCurrency, generateOrderNumber } from "@/lib/utils/formatters";
@@ -18,7 +20,7 @@ import styles from "./cart.module.css";
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, updateQuantity, removeItem, clearCart, getCartSubtotal } = useCartStore();
+  const { items, updateQuantity, removeItem, clearCart, getCartSubtotal, updateNotes } = useCartStore();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
 
@@ -151,8 +153,24 @@ export default function CartPage() {
     setLoading(true);
 
     try {
-      const orderNumber = generateOrderNumber();
       const firstItem = items[0];
+      const businessId = firstItem.businessId;
+
+      // Verify that all products in the cart are in stock
+      for (const item of items) {
+        const prodRef = doc(db, COLLECTIONS.BUSINESSES, businessId, COLLECTIONS.PRODUCTS, item.productId);
+        const snap = await getDoc(prodRef);
+        if (snap.exists()) {
+          const prodData = snap.data();
+          if (!prodData.inStock || (prodData.stockQty !== undefined && prodData.stockQty <= 0)) {
+            toast.error(`"${item.name}" is currently out of stock. Please remove it from your cart.`, { duration: 4000 });
+            setLoading(false);
+            return;
+          }
+        }
+      }
+
+      const orderNumber = generateOrderNumber();
 
       // Format items list for database
       const orderItems = items.map((item) => ({
@@ -266,8 +284,33 @@ export default function CartPage() {
     );
   }
 
+  const firstItem = items[0];
+  const businessId = firstItem?.businessId;
+  const businessName = firstItem?.businessName;
+
   return (
     <div className={styles.container}>
+      {businessId && businessName && (
+        <button
+          onClick={() => router.push(`/business/${businessId}`)}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            color: "var(--primary)",
+            background: "none",
+            border: "none",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer",
+            marginBottom: 16,
+            alignSelf: "flex-start",
+            padding: 0
+          }}
+        >
+          ← Add more items from {businessName}
+        </button>
+      )}
       <h1 className={styles.title}>Shopping Cart</h1>
 
       {/* Cart Items list */}
@@ -312,11 +355,11 @@ export default function CartPage() {
                 placeholder="Add special instructions (e.g. no onions)"
                 value={item.notes || ""}
                 onChange={(e) =>
-                  updateQuantity(
+                  updateNotes(
                     item.productId,
                     item.selectedVariants,
                     item.selectedAddOns,
-                    item.quantity
+                    e.target.value
                   )
                 }
                 className={styles.notesInput}
